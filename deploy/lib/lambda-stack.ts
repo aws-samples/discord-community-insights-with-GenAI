@@ -4,11 +4,11 @@ import * as lambdanodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import {Construct} from 'constructs';
 import * as iam from "aws-cdk-lib/aws-iam";
-import * as dotenv from "dotenv";
-
-dotenv.config();
+import {DeployConstant} from "./deploy-constants";
 
 export class LambdaStack extends NestedStack {
+
+    public readonly submitJobFunction: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props?: cdk.NestedStackProps) {
         super(scope, id, props);
@@ -47,7 +47,7 @@ export class LambdaStack extends NestedStack {
             logRetention: cdk.aws_logs.RetentionDays.ONE_WEEK
         }
 
-        const codeToTokensFunction = new lambdanodejs.NodejsFunction(this, 'SubmitGlueJob', {
+        this.submitJobFunction = new lambdanodejs.NodejsFunction(this, 'SubmitGlueJob', {
             functionName: 'submit-glue-job-func',
             entry: './resources/lambda/submit-analysis-glue-job.ts',
             environment: {

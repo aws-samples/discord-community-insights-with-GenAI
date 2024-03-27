@@ -3,10 +3,8 @@ import * as cdk from 'aws-cdk-lib';
 import {NestedStack} from 'aws-cdk-lib';
 import {Construct} from 'constructs';
 import * as iam from "aws-cdk-lib/aws-iam";
-import * as dotenv from "dotenv";
 import * as path from "path";
-
-dotenv.config();
+import {DeployConstant} from "./deploy-constants";
 
 export class GlueStack extends NestedStack {
 

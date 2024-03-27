@@ -9,6 +9,7 @@ exports.handler = async (event) => {
         // 如果需要，可以在这里添加其他参数，例如Arguments用于传递给Glue作业的参数
     });
 
+
     try {
         // 发送命令以启动Glue作业
         const data = await client.send(startJobRunCommand);

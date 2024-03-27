@@ -1,5 +1,6 @@
-const enum DeployConstant {
+export class DeployConstant {
 
-    GLUE_JOB_NAME = 'llm-analysis-text-job'
+    public static readonly GLUE_JOB_NAME = 'llm-analysis-text-job'
 
+    private constructor() {}
 }

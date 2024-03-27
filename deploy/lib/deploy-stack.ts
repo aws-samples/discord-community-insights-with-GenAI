@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import {CfnOutput} from "aws-cdk-lib";
 import {GlueStack} from "./glue-stack";
 import {LambdaStack} from "./lambda-stack";
+import {ApigatewayStack} from "./apigateway-stack";
 
 export class DeployStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -17,6 +18,8 @@ export class DeployStack extends cdk.Stack {
 
     const gluestack = new GlueStack(this,'glue-stack',{});
     const lambdastack = new LambdaStack(this,'lambda-stack',{});
+    const apiGatewayStack = new ApigatewayStack(this, 'apigateway-stack', {startLLMAnalysisJobLambda: lambdastack.submitJobFunction})
+    apiGatewayStack.addDependency(lambdastack);
     new CfnOutput(this, `Glue Job name`,{value:`${gluestack.jobName}`});
 
 
