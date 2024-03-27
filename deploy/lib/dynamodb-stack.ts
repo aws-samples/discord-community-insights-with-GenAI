@@ -21,7 +21,26 @@ export class DynamodbStack extends NestedStack {
                 name: "id",
                 type: AttributeType.STRING,
             },
+            pointInTimeRecovery: true,
             removalPolicy: RemovalPolicy.DESTROY, // NOT recommended for production code
+        });
+
+        const readScaling = prompt_template_table.autoScaleReadCapacity({
+            minCapacity: 1,
+            maxCapacity: 10,
+        });
+
+        readScaling.scaleOnUtilization({
+            targetUtilizationPercent: 65,
+        });
+
+        const writeScaling = prompt_template_table.autoScaleWriteCapacity({
+            minCapacity: 1,
+            maxCapacity: 10,
+        });
+
+        writeScaling.scaleOnUtilization({
+            targetUtilizationPercent: 65,
         });
     }
 }
