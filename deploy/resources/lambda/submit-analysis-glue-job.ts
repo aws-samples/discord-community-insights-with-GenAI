@@ -2,8 +2,7 @@ import { GlueClient, StartJobRunCommand } from "@aws-sdk/client-glue";
 
 const client = new GlueClient();
 exports.handler = async (event) => {
-    const jobName = "llm-analysis-text-job";
-
+    const jobName = process.env.GLUE_JOB_NAME;
     // 创建启动Glue作业的命令
     const startJobRunCommand = new StartJobRunCommand({
         JobName: jobName,

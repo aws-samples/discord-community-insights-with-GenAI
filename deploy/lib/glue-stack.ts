@@ -1,11 +1,12 @@
-import * as glue from  '@aws-cdk/aws-glue-alpha';
-import { NestedStack,Duration, CfnOutput }  from 'aws-cdk-lib';
+import * as glue from '@aws-cdk/aws-glue-alpha';
 import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
+import {NestedStack} from 'aws-cdk-lib';
+import {Construct} from 'constructs';
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as dotenv from "dotenv";
-dotenv.config();
 import * as path from "path";
+
+dotenv.config();
 
 export class GlueStack extends NestedStack {
 
@@ -23,7 +24,7 @@ export class GlueStack extends NestedStack {
         const scriptPath = path.resolve(__dirname, '../resources/glue-job-code/llm-analysis-text.py');
 
         const job = new glue.Job(this, 'llm-analysis-text',{
-            jobName: "llm-analysis-text-job",
+            jobName: DeployConstant.GLUE_JOB_NAME,
             executable: glue.JobExecutable.pythonEtl({
                 glueVersion: glue.GlueVersion.V4_0,
                 pythonVersion: glue.PythonVersion.THREE,

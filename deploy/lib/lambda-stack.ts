@@ -1,10 +1,11 @@
-import { NestedStack,Duration, CfnOutput }  from 'aws-cdk-lib';
 import * as cdk from 'aws-cdk-lib';
+import {NestedStack} from 'aws-cdk-lib';
 import * as lambdanodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
-import { Construct } from 'constructs';
+import {Construct} from 'constructs';
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as dotenv from "dotenv";
+
 dotenv.config();
 
 export class LambdaStack extends NestedStack {
@@ -50,7 +51,7 @@ export class LambdaStack extends NestedStack {
             functionName: 'submit-glue-job-func',
             entry: './resources/lambda/submit-analysis-glue-job.ts',
             environment: {
-                'GLUE_JOB_NAME': 'llm-analysis',
+                'GLUE_JOB_NAME': DeployConstant.GLUE_JOB_NAME,
             },
             ...functionSettings
         });
