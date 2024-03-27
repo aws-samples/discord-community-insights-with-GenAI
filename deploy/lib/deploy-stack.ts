@@ -4,6 +4,7 @@ import {CfnOutput} from "aws-cdk-lib";
 import {GlueStack} from "./glue-stack";
 import {LambdaStack} from "./lambda-stack";
 import {ApigatewayStack} from "./apigateway-stack";
+import {DynamodbStack} from "./dynamodb-stack";
 
 export class DeployStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -20,6 +21,7 @@ export class DeployStack extends cdk.Stack {
     const lambdastack = new LambdaStack(this,'lambda-stack',{});
     const apiGatewayStack = new ApigatewayStack(this, 'apigateway-stack', {startLLMAnalysisJobLambda: lambdastack.submitJobFunction})
     apiGatewayStack.addDependency(lambdastack);
+    const dynamodbStack = new DynamodbStack(this,'dynamodb-stack',{});
     new CfnOutput(this, `Glue Job name`,{value:`${gluestack.jobName}`});
 
 
