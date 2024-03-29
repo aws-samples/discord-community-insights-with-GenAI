@@ -4,13 +4,20 @@ const glue = new AWS.Glue();
 const jobName = process.env.GLUE_JOB_NAME;
 const pageSize = 10;
 exports.handler = async (event) => {
-    const pageToken = event.queryStringParameters.pageToken;
 
-    const params = {
-        Name: jobName,
+    let params = {
+        JobName: jobName,
         MaxResults: pageSize,
-        NextToken: pageToken
     };
+    if (event.queryStringParameters && event.queryStringParameters.page_token) {
+        const pageToken = event.queryStringParameters.page_token;
+
+        params = {
+            JobName: jobName,
+            MaxResults: pageSize,
+            NextToken: pageToken
+        };
+    }
 
     const response = await glue.getJobRuns(params).promise();
     const jobRuns = response.JobRuns;

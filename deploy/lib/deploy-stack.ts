@@ -17,7 +17,10 @@ export class DeployStack extends cdk.Stack {
     const lambdastack = new LambdaStack(this,'lambda-stack',{});
     const apiGatewayStack = new ApigatewayStack(this, 'apigateway-stack', {
       promptTemplateFunction: lambdastack.promptTemplateFunction,
-      startLLMAnalysisJobLambda: lambdastack.submitJobFunction})
+      startLLMAnalysisJobLambda: lambdastack.submitJobFunction,
+      getGlueJobFunction: lambdastack.getGlueJobFunction,
+      getAthenaResultsFunction: lambdastack.getAthenaResultsFunction,
+    })
     apiGatewayStack.addDependency(lambdastack);
     const dynamodbStack = new DynamodbStack(this,'dynamodb-stack',{});
     new CfnOutput(this, `Glue Job name`,{value:`${gluestack.jobName}`});

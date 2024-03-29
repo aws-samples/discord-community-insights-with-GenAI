@@ -10,6 +10,8 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 export interface APIGatewayProps extends NestedStackProps {
     startLLMAnalysisJobLambda: lambda.IFunction,
     promptTemplateFunction: lambda.IFunction,
+    getGlueJobFunction: lambda.IFunction,
+    getAthenaResultsFunction: lambda.IFunction,
 }
 
 export class ApigatewayStack extends NestedStack {
@@ -40,7 +42,7 @@ export class ApigatewayStack extends NestedStack {
             enabled: true,
             description: 'LLM-TEXT-ANALYSIS-API-KEY'
         });
-        const startAnalysisRootPath = llmTextAnalysisAPI.root.addResource('start-analysis-job', {
+        const jobsRootPath = llmTextAnalysisAPI.root.addResource('jobs', {
             defaultMethodOptions: {
                 apiKeyRequired: true
             }
@@ -52,7 +54,20 @@ export class ApigatewayStack extends NestedStack {
             }
         });
 
-        startAnalysisRootPath.addMethod('POST', new _apigateway.LambdaIntegration(props.startLLMAnalysisJobLambda));
+        jobsRootPath.addMethod('POST', new _apigateway.LambdaIntegration(props.startLLMAnalysisJobLambda));
+        jobsRootPath.addMethod('GET', new _apigateway.LambdaIntegration(props.getGlueJobFunction), {
+            requestParameters: {
+                'method.request.querystring.page_token': false
+            }
+        });
+
+        const resultsPath = jobsRootPath.addResource("results", {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+        const resultsGetMethod = resultsPath.addMethod("GET",
+            new _apigateway.LambdaIntegration(props.getAthenaResultsFunction))
 
         promptsRootPath.addMethod("GET", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
         promptsRootPath.addMethod("POST", new _apigateway.LambdaIntegration(props.promptTemplateFunction))

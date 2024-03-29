@@ -9,5 +9,14 @@ export class DeployConstant {
      */
     public static readonly S3_BUCKET_NAME = 'llm-analysis-text-998'
 
+
+    /**
+     *
+     * @private
+     */
+    public static readonly GLUE_DATABASE = 'llm_text_db'
+
+    public static readonly GLUE_TABLE = 'sentiment_result'
+
     private constructor() {}
 }

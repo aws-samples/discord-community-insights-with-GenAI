@@ -96,7 +96,7 @@ def persist_to_s3(key, results):
 
     # 将序列化后的数组上传到 S3
     bucket.put_object(
-        Key=result_prefix + job_run_id + '/' + key.replace('/', '-') +'.json',  # 文件在 S3 上的路径和文件名
+        Key=result_prefix + 'job_id=' + job_run_id + '/' + key.replace('/', '-') +'.json',  # 文件在 S3 上的路径和文件名
         Body=file_content
     )
 
