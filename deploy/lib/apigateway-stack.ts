@@ -53,10 +53,19 @@ export class ApigatewayStack extends NestedStack {
         });
 
         startAnalysisRootPath.addMethod('POST', new _apigateway.LambdaIntegration(props.startLLMAnalysisJobLambda));
+
         promptsRootPath.addMethod("GET", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
         promptsRootPath.addMethod("POST", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
-        promptsRootPath.addMethod("PUT", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
-        promptsRootPath.addMethod("DELETE", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
+
+        const singlePromptPath = promptsRootPath.addResource('{id}', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+
+        singlePromptPath.addMethod("GET", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
+        singlePromptPath.addMethod("PUT", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
+        singlePromptPath.addMethod("DELETE", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
 
         const usagePlan = llmTextAnalysisAPI.addUsagePlan('TestAPIKeyUsagePlan', {
             name: 'Test-GLWorkshop-UsagePlan',
