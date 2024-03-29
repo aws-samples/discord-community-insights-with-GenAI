@@ -1,6 +1,7 @@
 import numpy as np
 import boto3
 import json
+import sys
 import re
 import time
 import pickle
@@ -11,17 +12,51 @@ from langchain_core.prompts import ChatPromptTemplate,MessagesPlaceholder,HumanM
 from langchain_core.output_parsers.base import BaseOutputParser
 from langchain_core.runnables import RunnableLambda
 from operator import itemgetter
+from awsglue.utils import getResolvedOptions
 
 
 print("---------------Starting Analysis-----------------")
 
+# 接收参数
+args = getResolvedOptions(sys.argv, ['PROMPT_ID', 'BUCKET_NAME'])
+print("------------------Default Job Run ID:", args)
+job_run_id = args['JOB_RUN_ID']
+prompt_id = args['PROMPT_ID']
+bucket_name = args['BUCKET_NAME']
+
 s3 = boto3.resource('s3')
-bucket_name = 'jiangyu-rag'
+dynamodb = boto3.client('dynamodb')
 prefix = 'raw-data/'
 result_prefix = 'result/'
 
 # 获取存储桶对象
 bucket = s3.Bucket(bucket_name)
+
+table_name = 'prompt-template'
+partition_key_name = 'id'
+partition_key_value = prompt_id
+
+# 查询记录
+response = dynamodb.query(
+    TableName=table_name,
+    KeyConditionExpression=f'{partition_key_name} = :val',
+    ExpressionAttributeValues={
+        ':val': {'S': partition_key_value}
+    }
+)
+
+if len(response['Items']) == 0:
+    print("************Wrong PROMPT ID**************:",prompt_id)
+
+topic = response['Items'][0]['topic']['S']
+prompt_rag = response['Items'][0]['prompt_rag']['S']
+prompt_sentiment = response['Items'][0]['prompt_sentiment']['S']
+
+print('topic:',topic)
+print('prompt_rag:',prompt_rag)
+print('prompt_sentiment:',prompt_sentiment)
+prompt_extract = ChatPromptTemplate.from_template(prompt_rag)
+prompt_sentiment = ChatPromptTemplate.from_template(prompt_sentiment)
 
 llm_sonnet = BedrockChat(model_id="anthropic.claude-3-sonnet-20240229-v1:0",
                   model_kwargs={"temperature": 0,
@@ -30,60 +65,6 @@ llm_sonnet = BedrockChat(model_id="anthropic.claude-3-sonnet-20240229-v1:0",
                                 "top_p":0.5,
                                 # "stop_sequences":['</response>']
                                })
-template_extract = \
-"""You are an expert research assistant, tasked with identifying player sentiments regarding certain in-game items, neutral NPCs, and game market activities.
-
-Here is a document you will analyze
-<doc>
-{context}
-</doc>
-
-Here is a task:
-First, find the quotes from the document that are most relevant to {topic}, and then print them in numbered order. Quotes should be relatively short.
-If there are no relevant quotes, write "No relevant quotes" instead.
-please enclose your analysis results in xml tag <response>.
-
-for example:
-<response>
-1. "拍卖行多香"
-2. "我拍到好东西了"
-3. "拍卖行太差劲了"
-4. "auction sucks"
-5. "拍卖行有人发包"
-</response>
-
-Skip the preamble, go straight into the answer.
-"""
-
-template_sentiment = \
-"""You are a chat message sentiment classifer
-
-Here is a document you will classify the senetiment
-<doc>
-{relevant_info}
-</doc>
-
-
-please list all the content if it is relevant to {topic} and classify the sentiment of each content into [positive,neutral,negative]'
-
-Please follow below requirements:
-1. You will strictly be based on the document in <doc>.
-2. please enclose your analysis results in xml tag <sentiment>.
-
-for example:
-<sentiment>
-1. "拍卖行多香" [positive]
-2. "我拍到好东西了" [positive]
-3. "拍卖行太差劲了" [negative]
-4. "auction sucks" [negative]
-5. "拍卖行有人发包" [neutral]
-</sentiment>
-
-Skip the preamble, go straight into the answer.
-
-"""
-prompt_extract = ChatPromptTemplate.from_template(template_extract)
-prompt_sentiment = ChatPromptTemplate.from_template(template_sentiment)
 
 # 提取有价值聊天记录
 def extract_value_data(lines):
@@ -115,7 +96,7 @@ def persist_to_s3(key, results):
 
     # 将序列化后的数组上传到 S3
     bucket.put_object(
-        Key=result_prefix+key+'.json',  # 文件在 S3 上的路径和文件名
+        Key=result_prefix + job_run_id + '/' + key.replace('/', '-') +'.json',  # 文件在 S3 上的路径和文件名
         Body=file_content
     )
 

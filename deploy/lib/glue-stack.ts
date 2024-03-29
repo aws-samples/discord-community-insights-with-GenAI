@@ -29,9 +29,9 @@ export class GlueStack extends NestedStack {
                 script: glue.Code.fromAsset(scriptPath),
             }),
             maxConcurrentRuns:200,
-            maxRetries:1,
+            maxRetries:0,
             defaultArguments:{
-                '--DOC_INDEX_TABLE':'chatbot_doc_index',
+                '--BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
                 '--additional-python-modules': 'langchain==0.1.12,langchain-community==0.0.28,boto3>=1.34.64,botocore>=1.34.64'
             }
         })

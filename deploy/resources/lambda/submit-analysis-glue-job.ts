@@ -1,14 +1,21 @@
 import { GlueClient, StartJobRunCommand } from "@aws-sdk/client-glue";
 
 const client = new GlueClient();
+const jobName = process.env.GLUE_JOB_NAME;
+const bucketName = process.env.BUCKET_NAME;
 exports.handler = async (event) => {
-    const jobName = process.env.GLUE_JOB_NAME;
+
+    let body = JSON.parse(event.body);
+
     // 创建启动Glue作业的命令
     const startJobRunCommand = new StartJobRunCommand({
         JobName: jobName,
         // 如果需要，可以在这里添加其他参数，例如Arguments用于传递给Glue作业的参数
+        Arguments: {
+            '--PROMPT_ID': body.prompt_id,
+            '--BUCKET_NAME': bucketName
+        }
     });
-
 
     try {
         // 发送命令以启动Glue作业

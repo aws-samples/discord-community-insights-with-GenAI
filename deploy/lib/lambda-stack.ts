@@ -62,6 +62,7 @@ export class LambdaStack extends NestedStack {
             role: submitJobLambdaRole,
             environment: {
                 'GLUE_JOB_NAME': DeployConstant.GLUE_JOB_NAME,
+                'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
             },
             ...functionSettings
         });
@@ -72,6 +73,7 @@ export class LambdaStack extends NestedStack {
             role: promptTemplateLambdaRole,
             environment: {
                 'TABLE_NAME': DeployConstant.LLM_ANALYSIS_TEXT_TABLE_NAME,
+                'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
             },
             ...functionSettings
         });
