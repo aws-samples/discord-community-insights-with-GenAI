@@ -15,18 +15,13 @@ headers = {
 response = requests.request("GET", url, headers=headers, data=payload)
 data = json.loads(response.text)
 df = pd.json_normalize(data['jobRuns'])
-st.set_page_config(page_title="分析任务列表", layout="wide") 
+st.set_page_config(page_title="分析任务列表", layout="wide")
 st.title("分析任务列表")
 
 df['result_link'] = '/result?job_id=' + df['Id']
 
 st.data_editor(
-    df,
-    column_config={
-        "result_link": st.column_config.LinkColumn(
-            "操作", display_text="查看结果"
-        ),
-    },
+    df
     hide_index=True,
 )
 
