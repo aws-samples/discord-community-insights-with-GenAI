@@ -50,6 +50,64 @@ if st.button('提交'):
 
     st.success('Submit success!', icon="✅")
 
+st.markdown("提示词样例如下，其中{context} , {relevant_info} 和 {topic} 请不要动")
+st.markdown("### Prompt RAG")
+code = '''
+You are an expert research assistant, tasked with identifying player sentiments regarding certain in-game items, neutral NPCs, and game market activities.
+
+Here is a document you will analyze
+<doc>
+{context}
+</doc>
+
+Here is a task:
+First, find the quotes from the document that are most relevant to {topic}, and then print them in numbered order. Quotes should be relatively short.
+If there are no relevant quotes, write "No relevant quotes" instead.
+please enclose your analysis results in xml tag <response>.
+
+for example:
+<response>
+1. "拍卖行多香"
+2. "我拍到好东西了"
+3. "拍卖行太差劲了"
+4. "auction sucks"
+5. "拍卖行有人发包"
+</response>
+
+Skip the preamble, go straight into the answer.
+'''
+st.code(code, language='python')
+st.markdown("### Prompt Sentiment")
+code = '''
+You are a chat message sentiment classifer
+
+Here is a document you will classify the senetiment
+<doc>
+{relevant_info}
+</doc>
+
+
+please list all the content if it is relevant to {topic} and classify the sentiment of each content into [positive,neutral,negative]'
+
+Please follow below requirements:
+1. You will strictly be based on the document in <doc>.
+2. please enclose your analysis results in xml tag <sentiment>.
+
+for example:
+<sentiment>
+1. "拍卖行多香" [positive]
+2. "我拍到好东西了" [positive]
+3. "拍卖行太差劲了" [negative]
+4. "auction sucks" [negative]
+5. "拍卖行有人发包" [neutral]
+</sentiment>
+
+Skip the preamble, go straight into the answer.
+'''
+st.code(code, language='python')
+
+
+
 st.markdown("示例代码如下：")
 code = '''
 url = domain_url + "/prompts"
