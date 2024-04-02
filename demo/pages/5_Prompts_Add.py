@@ -85,10 +85,7 @@ Here is a document you will classify the senetiment
 <doc>
 {relevant_info}
 </doc>
-
-
 please list all the content if it is relevant to {topic} and classify the sentiment of each content into [positive,neutral,negative]'
-
 Please follow below requirements:
 1. You will strictly be based on the document in <doc>.
 2. please enclose your analysis results in xml tag <sentiment>.
