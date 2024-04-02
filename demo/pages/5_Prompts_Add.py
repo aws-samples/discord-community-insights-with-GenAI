@@ -50,7 +50,7 @@ if st.button('提交'):
 
     st.success('Submit success!', icon="✅")
 
-st.markdown("提示词样例如下，其中{context} , {relevant_info} 和 {topic} 请不要动")
+st.markdown("<font color="red">###提示词样例如下，其中{context} , {relevant_info} 和 {topic} 请不要动</font>")
 st.markdown("### Prompt RAG")
 code = '''
 You are an expert research assistant, tasked with identifying player sentiments regarding certain in-game items, neutral NPCs, and game market activities.
