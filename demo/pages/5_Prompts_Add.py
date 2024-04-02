@@ -49,3 +49,27 @@ if st.button('提交'):
     response = requests.request("POST", url, headers=headers, data=payload)
 
     st.success('Submit success!', icon="✅")
+
+st.markdown("示例代码如下：")
+code = '''
+url = domain_url + "/prompts"
+
+headers = {
+  'x-api-key': api_key,
+  'Content-Type': 'application/json'
+}
+response = json.loads(requests.request("GET", url, headers=headers).text)
+
+payload = json.dumps({
+  "topic": topic,
+  "prompt_rag": prompt_rag,
+  "prompt_sentiment": prompt_sentiment
+})
+headers = {
+  'x-api-key': api_key,
+  'Content-Type': 'application/json'
+}
+
+response = requests.request("POST", url, headers=headers, data=payload)
+'''
+st.code(code, language='python')
