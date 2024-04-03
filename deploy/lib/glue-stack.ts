@@ -32,6 +32,8 @@ export class GlueStack extends NestedStack {
             maxRetries:0,
             defaultArguments:{
                 '--BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                '--RAW_DATA_PREFIX': DeployConstant.RAW_DATA_PREFIX,
+                '--PROMPT_TEMPLATE_TABLE': DeployConstant.LLM_ANALYSIS_TEXT_TABLE_NAME,
                 '--additional-python-modules': 'langchain==0.1.12,langchain-community==0.0.28,boto3>=1.34.64,botocore>=1.34.64'
             }
         })

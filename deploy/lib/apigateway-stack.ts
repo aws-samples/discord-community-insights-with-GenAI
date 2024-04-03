@@ -12,6 +12,7 @@ export interface APIGatewayProps extends NestedStackProps {
     promptTemplateFunction: lambda.IFunction,
     getGlueJobFunction: lambda.IFunction,
     getAthenaResultsFunction: lambda.IFunction,
+    getRawDataDirectoriesFunction: lambda.IFunction,
 }
 
 export class ApigatewayStack extends NestedStack {
@@ -53,6 +54,14 @@ export class ApigatewayStack extends NestedStack {
                 apiKeyRequired: true
             }
         });
+
+        const chatDataRootPath = llmTextAnalysisAPI.root.addResource('chat-data', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+
+        chatDataRootPath.addMethod('GET', new _apigateway.LambdaIntegration(props.getRawDataDirectoriesFunction));
 
         jobsRootPath.addMethod('POST', new _apigateway.LambdaIntegration(props.startLLMAnalysisJobLambda));
         jobsRootPath.addMethod('GET', new _apigateway.LambdaIntegration(props.getGlueJobFunction), {

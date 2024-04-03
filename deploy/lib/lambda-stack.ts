@@ -12,6 +12,7 @@ export class LambdaStack extends NestedStack {
     public readonly promptTemplateFunction: lambda.IFunction;
     public readonly getGlueJobFunction: lambda.IFunction;
     public readonly getAthenaResultsFunction: lambda.IFunction;
+    public readonly getRawDataDirectoriesFunction: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props?: cdk.NestedStackProps) {
         super(scope, id, props);
@@ -67,6 +68,8 @@ export class LambdaStack extends NestedStack {
             environment: {
                 'GLUE_JOB_NAME': DeployConstant.GLUE_JOB_NAME,
                 'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                'RAW_DATA_PREFIX': DeployConstant.RAW_DATA_PREFIX,
+                'PROMPT_TEMPLATE_TABLE': DeployConstant.LLM_ANALYSIS_TEXT_TABLE_NAME,
             },
             ...functionSettings
         });
@@ -101,6 +104,18 @@ export class LambdaStack extends NestedStack {
                 'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
                 'TABLE_NAME': DeployConstant.GLUE_TABLE,
                 'DATABASE_NAME': DeployConstant.GLUE_DATABASE,
+            },
+            ...functionSettings
+        });
+
+        this.getRawDataDirectoriesFunction = new lambdanodejs.NodejsFunction(this, 'GetRawDataDirectories', {
+            functionName: 'get-raw-data-directories-func',
+            entry: './resources/lambda/get-s3-data-directories.ts',
+            role: glueJobLambdaRole,
+            timeout: Duration.minutes(10),
+            environment: {
+                'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                'RAW_DATA_PREFIX': DeployConstant.RAW_DATA_PREFIX,
             },
             ...functionSettings
         });

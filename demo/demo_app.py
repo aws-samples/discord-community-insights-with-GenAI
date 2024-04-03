@@ -8,11 +8,10 @@ st.set_page_config(
 
 st.write("# Welcome to 舆情分析系统 👋")
 
-st.sidebar.success("Select a demo above.")
-
+# 需要根据Cloudformation中的内容来设定URL
 if 'domain_url' not in st.session_state:
     st.session_state.domain_url = "https://wifrpdv052.execute-api.us-east-1.amazonaws.com/prod"
-
+# 需要根据Cloudformation中的内容来设定API KEY
 if 'api_key' not in st.session_state:
     st.session_state.api_key = "hTJvdee2uXphpeUHeXE824vePhFX1LR8qpQPMbE8"
 

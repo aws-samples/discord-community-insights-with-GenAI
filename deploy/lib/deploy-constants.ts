@@ -9,6 +9,7 @@ export class DeployConstant {
      */
     public static readonly S3_BUCKET_NAME = 'llm-analysis-text-998'
 
+    public static readonly RAW_DATA_PREFIX = 'raw-data/'
 
     /**
      *

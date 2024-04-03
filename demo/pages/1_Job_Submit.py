@@ -5,7 +5,6 @@ domain_url = st.session_state.domain_url
 api_key = st.session_state.api_key
 
 def submit_job():
-
     url = domain_url + "/jobs"
     payload = json.dumps({
       "prompt_id": "248367b6-b36a-47fe-81c8-038579fb6b96"
@@ -18,8 +17,6 @@ def submit_job():
     print(response.text)
 
 def get_prompts():
-
-
     prompts_url = domain_url + "/prompts"
     prompts_headers = {
       'x-api-key': api_key
@@ -28,21 +25,32 @@ def get_prompts():
     prompts_response = requests.request("GET", prompts_url, headers=prompts_headers, data={})
     return json.loads(prompts_response.text)
 
+
+def get_chatdata():
+    data_url = domain_url + "/chat-data"
+    headers = {
+      'x-api-key': api_key
+    }
+    response = requests.request("GET", data_url, headers=headers, data={})
+    return json.loads(response.text)
+
 prompts = get_prompts()
+chatdata = get_chatdata()
 
 topics = [data['topic'] for data in prompts]
 st.title("提交分析任务")
-selected_data_index = st.selectbox("=======>选择提示词<=======", topics)
+selected_topic_index = st.selectbox("=======>选择提示词<=======", topics)
+selected_data_index = st.selectbox("=======>选择源数据<=======", chatdata)
 
 # 根据选定的索引显示相应的 JSON 数据
-selected_json = next(data for data in prompts if data['topic'] == selected_data_index)
+selected_topic = next(data for data in prompts if data['topic'] == selected_topic_index)
 
 if st.button('提交'):
 
     url = domain_url + "/jobs"
 
     payload = json.dumps({
-      "prompt_id": selected_json['id']
+      "prompt_id": selected_topic['id']
     })
     headers = {
       'x-api-key': api_key,

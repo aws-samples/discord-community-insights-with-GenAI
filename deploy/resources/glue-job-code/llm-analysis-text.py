@@ -14,25 +14,22 @@ from langchain_core.runnables import RunnableLambda
 from operator import itemgetter
 from awsglue.utils import getResolvedOptions
 
-
 print("---------------Starting Analysis-----------------")
 
 # 接收参数
-args = getResolvedOptions(sys.argv, ['PROMPT_ID', 'BUCKET_NAME'])
+args = getResolvedOptions(sys.argv, ['PROMPT_ID', 'BUCKET_NAME', 'RAW_DATA_PREFIX', 'PROMPT_TEMPLATE_TABLE'])
 print("------------------Default Job Run ID:", args)
 job_run_id = args['JOB_RUN_ID']
 prompt_id = args['PROMPT_ID']
 bucket_name = args['BUCKET_NAME']
+prefix = args['RAW_DATA_PREFIX']
+table_name = args['PROMPT_TEMPLATE_TABLE']
+result_prefix = 'result/'
 
 s3 = boto3.resource('s3')
 dynamodb = boto3.client('dynamodb')
-prefix = 'raw-data/'
-result_prefix = 'result/'
-
-# 获取存储桶对象
 bucket = s3.Bucket(bucket_name)
 
-table_name = 'prompt-template'
 partition_key_name = 'id'
 partition_key_value = prompt_id
 
@@ -159,12 +156,10 @@ def llm_analysis(key, chunks):
         t1 = time.time()
         print(f'--------chunk idx:{i}-------')
         text =  "\n".join(chunk)
-        answer = full_chain.invoke({'topic':"auction house",
-                           'context':text})
+        answer = full_chain.invoke({'topic':topic, 'context':text})
         if answer:
             all_result += answer.split('\n')
     persist_to_s3(key, all_result)
-
 
 
 # 遍历目录中的所有文件
