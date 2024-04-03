@@ -44,13 +44,15 @@ selected_data_index = st.selectbox("=======>选择源数据<=======", chatdata)
 
 # 根据选定的索引显示相应的 JSON 数据
 selected_topic = next(data for data in prompts if data['topic'] == selected_topic_index)
+selected_data = next(data for data in chatdata if data == selected_data_index)
 
 if st.button('提交'):
 
     url = domain_url + "/jobs"
 
     payload = json.dumps({
-      "prompt_id": selected_topic['id']
+      "prompt_id": selected_topic['id'],
+      "prefix": selected_data
     })
     headers = {
       'x-api-key': api_key,
@@ -80,4 +82,3 @@ response = requests.request("POST", url, headers=headers, data=payload)
 print(response.text)
 '''
 st.code(code, language='python')
-
