@@ -1,11 +1,58 @@
 import streamlit as st
-import time, requests, json
+import time, requests, json, re
 
 domain_url = st.session_state.domain_url
 api_key = st.session_state.api_key
 
-def few_shot_callback(string):
-    st.write
+prompt_rag_sample = '''
+You are an expert research assistant, tasked with identifying player sentiments regarding certain in-game items, neutral NPCs, and game market activities.
+
+Here is a document you will analyze
+<doc>
+{context}
+</doc>
+
+Here is a task:
+First, find the quotes from the document that are most relevant to {topic}, and then print them in numbered order. Quotes should be relatively short.
+If there are no relevant quotes, write "No relevant quotes" instead.
+please enclose your analysis results in xml tag <response>.
+
+for example:
+<response>
+$SAMPLE$
+</response>
+
+Skip the preamble, go straight into the answer.
+'''
+prompt_sentiment_sample = '''
+You are a chat message sentiment classifer
+
+Here is a document you will classify the senetiment
+<doc>
+{relevant_info}
+</doc>
+please list all the content if it is relevant to {topic} and classify the sentiment of each content into [positive,neutral,negative]'
+Please follow below requirements:
+1. You will strictly be based on the document in <doc>.
+2. please enclose your analysis results in xml tag <sentiment>.
+
+for example:
+<sentiment>
+$SAMPLE$
+</sentiment>
+
+Skip the preamble, go straight into the answer.
+'''
+
+def few_shot_callback():
+    sample_sentiment_text = st.session_state.sample_text
+    original_texts = sample_sentiment_text.split("\n")
+    processed_texts = []
+    for text in original_texts:
+        processed_text = re.sub(r'\s*\[.*?\]\s*$', '', text)
+        processed_texts.append(processed_text)
+    st.session_state.prompt_sentiment = prompt_sentiment_sample.replace('$SAMPLE$', sample_sentiment_text)
+    st.session_state.prompt_rag = prompt_rag_sample.replace('$SAMPLE$', '\n'.join(processed_texts))
 
 
 
@@ -16,17 +63,27 @@ topic = st.text_input(
 
 prompt_rag = st.text_area(
     "Enter Prompt Rag👇 (required)",
+    key="prompt_rag",
     placeholder="Prompt RAG, using to extract relavent information from raw data",
 )
 
 prompt_sentiment = st.text_area(
     "Enter Prompt Sentiment👇 (required)",
+    key="prompt_sentiment",
     placeholder="Prompt Sentiment, using to analysis sentiment infromation from extracted data",
 )
 
-prompt_sentiment = st.text_area(
+sample_text = st.text_area(
     "Enter Samples👇 (optional)",
-    placeholder="1. 拍卖行多香 2. 我拍到好东西了"
+    placeholder=
+    """
+    1. "拍卖行多香" [positive]
+    2. "我拍到好东西了" [positive]
+    3. "拍卖行太差劲了" [negative]
+    4. "auction sucks" [negative]
+    5. "拍卖行有人发包" [neutral]""",
+    key='sample_text',
+    on_change=few_shot_callback
 )
 
 if st.button('提交'):
@@ -61,7 +118,7 @@ if st.button('提交'):
 
     st.success('Submit success!', icon="✅")
 
-st.markdown("<font color="red">###提示词样例如下，其中{context} , {relevant_info} 和 {topic} 请不要动</font>")
+st.markdown("### 提示词样例如下，其中{context} , {relevant_info} 和 {topic}请不要动")
 st.markdown("### Prompt RAG")
 code = '''
 You are an expert research assistant, tasked with identifying player sentiments regarding certain in-game items, neutral NPCs, and game market activities.
