@@ -1,11 +1,12 @@
 import streamlit as st
+from PIL import Image
 
 st.set_page_config(
     page_title="舆情分析系统",
     page_icon="👋",
 )
 
-st.write("# Welcome to Streamlit! 👋")
+st.write("# Welcome to 舆情分析系统 👋")
 
 st.sidebar.success("Select a demo above.")
 
@@ -18,17 +19,9 @@ if 'api_key' not in st.session_state:
 
 st.markdown(
     """
-
-    **👈 Select a demo from the sidebar** to see some examples
-    of what Streamlit can do!
-    ### Want to learn more?
-    - Check out [streamlit.io](https://streamlit.io)
-    - Jump into our [documentation](https://docs.streamlit.io)
-    - Ask a question in our [community
-        forums](https://discuss.streamlit.io)
-    ### See more complex demos
-    - Use a neural net to [analyze the Udacity Self-driving Car Image
-        Dataset](https://github.com/streamlit/demo-self-driving)
-    - Explore a [New York City rideshare dataset](https://github.com/streamlit/demo-uber-nyc-pickups)
+    ### Architecture Overview
 """
 )
+
+img = Image.open('./images/arch.png')
+st.image(img)
