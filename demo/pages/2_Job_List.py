@@ -21,7 +21,7 @@ st.title("分析任务列表")
 df['result_link'] = '/result?job_id=' + df['Id']
 
 st.data_editor(
-    df
+    df,
     hide_index=True,
 )
 
