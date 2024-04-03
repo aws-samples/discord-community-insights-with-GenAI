@@ -3,6 +3,12 @@ import time, requests, json
 
 domain_url = st.session_state.domain_url
 api_key = st.session_state.api_key
+
+def few_shot_callback(string):
+    st.write
+
+
+
 topic = st.text_input(
     "Enter Topic👇 (required)",
     placeholder="input topic name,like '拍卖行'",
@@ -16,6 +22,11 @@ prompt_rag = st.text_area(
 prompt_sentiment = st.text_area(
     "Enter Prompt Sentiment👇 (required)",
     placeholder="Prompt Sentiment, using to analysis sentiment infromation from extracted data",
+)
+
+prompt_sentiment = st.text_area(
+    "Enter Samples👇 (optional)",
+    placeholder="1. 拍卖行多香 2. 我拍到好东西了"
 )
 
 if st.button('提交'):
