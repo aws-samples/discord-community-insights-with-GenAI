@@ -152,7 +152,7 @@ full_chain = ({'relevant_info':chain_1,'topic':itemgetter('topic')})| RunnableLa
 
 def llm_analysis(key, chunks):
     all_result = []
-    for i,chunk in enumerate(chunks[:2]):
+    for i,chunk in enumerate(chunks):
         t1 = time.time()
         print(f'--------chunk idx:{i}-------')
         text =  "\n".join(chunk)
