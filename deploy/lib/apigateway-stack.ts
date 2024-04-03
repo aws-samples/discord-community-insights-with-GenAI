@@ -66,8 +66,12 @@ export class ApigatewayStack extends NestedStack {
                 apiKeyRequired: true
             }
         });
-        const resultsGetMethod = resultsPath.addMethod("GET",
-            new _apigateway.LambdaIntegration(props.getAthenaResultsFunction))
+        const resultsGetMethod = resultsPath.addMethod("POST",
+            new _apigateway.LambdaIntegration(props.getAthenaResultsFunction), {
+                requestParameters: {
+                    'method.request.querystring.body': true
+                }
+            })
 
         promptsRootPath.addMethod("GET", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
         promptsRootPath.addMethod("POST", new _apigateway.LambdaIntegration(props.promptTemplateFunction))

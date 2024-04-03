@@ -11,15 +11,14 @@ st.sidebar.success("Select a demo above.")
 
 if 'domain_url' not in st.session_state:
     st.session_state.domain_url = "https://wifrpdv052.execute-api.us-east-1.amazonaws.com/prod"
-    
+
 if 'api_key' not in st.session_state:
     st.session_state.api_key = "hTJvdee2uXphpeUHeXE824vePhFX1LR8qpQPMbE8"
 
 
 st.markdown(
     """
-    Streamlit is an open-source app framework built specifically for
-    Machine Learning and Data Science projects.
+
     **👈 Select a demo from the sidebar** to see some examples
     of what Streamlit can do!
     ### Want to learn more?

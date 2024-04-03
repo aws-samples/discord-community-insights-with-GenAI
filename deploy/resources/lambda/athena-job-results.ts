@@ -6,18 +6,23 @@ const bucketName = process.env.BUCKET_NAME;
 const athena = new AWS.Athena();
 
 exports.handler = async (event, context) => {
-    if (!event.queryStringParameters || !event.queryStringParameters.job_id) {
+    let queryBody = JSON.parse(event.body);
+    if (!queryBody || !queryBody.job_id) {
         return {
             statusCode: 400,
             body: JSON.stringify({'error': 'parameter job_id needed~!'})
         };
     }
+    const job_id = queryBody.job_id;
 
-    const job_id = event.queryStringParameters.job_id;
-
+    let queryString = `SELECT * FROM ${tableName} WHERE job_id='${job_id}'`;
+    if (queryBody.sql) {
+        queryString = queryBody.sql
+    }
+    console.log("query string:", queryString);
     // 设置 Athena 查询参数
     const params = {
-        QueryString: `SELECT * FROM ${tableName} WHERE job_id='${job_id}'`,
+        QueryString: queryString,
         QueryExecutionContext: {
             Database: dbName
         },
