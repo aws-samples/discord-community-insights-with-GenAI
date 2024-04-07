@@ -1,11 +1,12 @@
-const AWS = require('aws-sdk');
+const { DynamoDBClient, GetItemCommand, PutItemCommand, UpdateItemCommand, DeleteItemCommand, ScanCommand, QueryCommand } = require('@aws-sdk/client-dynamodb');
+const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
 const crypto = require('crypto');
-const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const tableName = process.env.TABLE_NAME;
 const pageSize = 20;
 
-exports.handler = async (event) => {
+const ddbClient = new DynamoDBClient();
 
+exports.handler = async (event) => {
     console.log(event);
 
     let response;
@@ -32,28 +33,27 @@ exports.handler = async (event) => {
 
 async function getDynamoDBData(event) {
     if (event.pathParameters && event.pathParameters.id) {
-        console.log(event.pathParameters.id)
-        let params = {
+        console.log(event.pathParameters.id);
+        const params = {
             TableName: tableName,
-            Key: {
-                id: event.pathParameters.id,
-            },
+            Key: marshall({ id: event.pathParameters.id }),
         };
-        const data = await dynamoDb.get(params).promise();
 
-        if (!data.Item) {
+        const { Item } = await ddbClient.send(new GetItemCommand(params));
+
+        if (!Item) {
             return buildResponse(404, '{"message": "Item not found"}');
         }
 
-        return buildResponse(200, JSON.stringify(data.Item));
+        return buildResponse(200, JSON.stringify(unmarshall(Item)));
     } else {
-        let params = {
+        const params = {
             TableName: tableName,
-            Limit:20
+            Limit: 20,
         };
 
-        const scanData = await dynamoDb.scan(params).promise();
-        return buildResponse(200, JSON.stringify(scanData.Items));
+        const { Items } = await ddbClient.send(new ScanCommand(params));
+        return buildResponse(200, JSON.stringify(Items.map(unmarshall)));
     }
 }
 
@@ -68,8 +68,8 @@ async function queryWithPagination(lastEvaluatedKey, queryParams) {
     // 合并额外的查询参数
     Object.assign(params, queryParams);
 
-    const result = await dynamoDb.query(params).promise();
-    const items = result.Items;
+    const result = await ddbClient.send(new QueryCommand(params));
+    const items = result.Items.map(unmarshall);
     const lastKey = result.LastEvaluatedKey;
 
     if (lastKey) {
@@ -83,28 +83,25 @@ async function queryWithPagination(lastEvaluatedKey, queryParams) {
 
 async function putDynamoDBData(event) {
     let item = JSON.parse(event.body);
-    console.log(item)
+    console.log(item);
     if (!item.id) {
         item['id'] = crypto.randomUUID();
         item['created_at'] = Date.now();
     }
     const params = {
         TableName: tableName,
-        Item: item,
+        Item: marshall(item),
     };
 
-    await dynamoDb.put(params).promise();
+    await ddbClient.send(new PutItemCommand(params));
     return buildResponse(200, '{"message": "Item added"}');
 }
 
 async function updateDynamoDBData(event) {
-
     let body = JSON.parse(event.body);
     const params = {
         TableName: tableName,
-        Key: {
-            id: event.pathParameters.id,
-        },
+        Key: marshall({ id: event.pathParameters.id }),
         UpdateExpression: 'set #t = :topic, #pr = :prompt_rag, #ps = :prompt_sentiment, #c= :created_at',
         ExpressionAttributeNames: {
             '#t': 'topic',
@@ -112,37 +109,34 @@ async function updateDynamoDBData(event) {
             '#ps': 'prompt_sentiment',
             '#c': 'created_at',
         },
-        ExpressionAttributeValues: {
+        ExpressionAttributeValues: marshall({
             ':topic': body.topic,
             ':prompt_rag': body.prompt_rag,
             ':prompt_sentiment': body.prompt_sentiment,
             ':created_at': Date.now(),
-        },
+        }),
         ReturnValues: 'ALL_NEW',
     };
 
-    console.log(params)
+    console.log(params);
 
-    const data = await dynamoDb.update(params).promise();
+    const { Attributes } = await ddbClient.send(new UpdateItemCommand(params));
 
-    if (!data.Attributes) {
+    if (!Attributes) {
         return buildResponse(404, '{"message": "Item not found"}');
     }
 
-    return buildResponse(200, JSON.stringify(data.Attributes));
+    return buildResponse(200, JSON.stringify(unmarshall(Attributes)));
 }
 
 async function deleteDynamoDBData(event) {
     const params = {
         TableName: tableName,
-        Key: {
-            id: event.pathParameters.id,
-        },
+        Key: marshall({ id: event.pathParameters.id }),
     };
 
-    const data = await dynamoDb.delete(params).promise();
-    console.log(data)
-    return buildResponse(200, JSON.stringify(data));
+    await ddbClient.send(new DeleteCommand(params));
+    return buildResponse(200, '{"message": "Item deleted"}');
 }
 
 function buildResponse(statusCode, body) {

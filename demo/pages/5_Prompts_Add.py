@@ -1,8 +1,17 @@
 import streamlit as st
 import time, requests, json, re
+import dotenv
+import os
 
-domain_url = st.session_state.domain_url
-api_key = st.session_state.api_key
+from pathlib import Path
+
+script_path = Path(__file__).resolve()
+current_dir = script_path.parent
+env_dir = script_path.parent.parent.parent
+
+dotenv.load_dotenv(os.path.join(env_dir,'deploy/.env'))
+domain_url = st.session_state.domain_url  if 'domain_url' in st.session_state else os.environ['domain_url']
+api_key = st.session_state.api_key  if 'api_key' in st.session_state else os.environ['apikeys']
 
 prompt_rag_sample = '''
 You are an expert research assistant, tasked with identifying player sentiments regarding certain in-game items, neutral NPCs, and game market activities.
@@ -64,13 +73,17 @@ topic = st.text_input(
 prompt_rag = st.text_area(
     "Enter Prompt Rag👇 (required)",
     key="prompt_rag",
+    height=12,
     placeholder="Prompt RAG, using to extract relavent information from raw data",
+    # value=prompt_rag_sample,
 )
 
 prompt_sentiment = st.text_area(
     "Enter Prompt Sentiment👇 (required)",
     key="prompt_sentiment",
+    height=12,
     placeholder="Prompt Sentiment, using to analysis sentiment infromation from extracted data",
+    # value=prompt_sentiment_sample,
 )
 
 sample_text = st.text_area(
@@ -103,7 +116,7 @@ if st.button('提交'):
       'Content-Type': 'application/json'
     }
     response = json.loads(requests.request("GET", url, headers=headers).text)
-
+    print('GET:',response)
     payload = json.dumps({
       "topic": topic,
       "prompt_rag": prompt_rag,
@@ -116,7 +129,11 @@ if st.button('提交'):
 
     response = requests.request("POST", url, headers=headers, data=payload)
 
-    st.success('Submit success!', icon="✅")
+    if response.status_code == 200:
+        st.success('Submit success!', icon="✅")
+    else:
+        st.error(f'Submit failed with code:{response.status_code} message:{response.content}')  
+    
 
 st.markdown("### 提示词样例如下，其中{context} , {relevant_info} 和 {topic}请不要动")
 st.markdown("### Prompt RAG")
