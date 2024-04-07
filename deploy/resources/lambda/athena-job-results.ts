@@ -6,6 +6,8 @@ const bucketName = process.env.BUCKET_NAME;
 const athenaClient = new AthenaClient();
 
 exports.handler = async (event, context) => {
+    console.log(event.body)
+
     let queryBody = JSON.parse(event.body);
     if (!queryBody || !queryBody.job_id) {
         return {

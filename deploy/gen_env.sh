@@ -17,9 +17,9 @@ GLUE_DATABASE="llm_text_db"
 # Glue Catalog中查询S3中分析数据使用表名
 GLUE_TABLE="sentiment_result"
 # Api Gateway 暴露的domain URL，需要在CDK 部署完毕后进行配置
-domain_url="placeholder please change as after the output of cdk deploy result"
+domain_url="https://wifrpdv052.execute-api.us-east-1.amazonaws.com/prod/"
 # 调用Api Gateway 暴露的domain URL API key，需要在CDK 部署完毕后进行配置
-apikeys="placeholder"
+apikeys="hTJvdee2uXphpeUHeXE824vePhFX1LR8qpQPMbE8"
 echo "GLUE_JOB_NAME=${GLUE_JOB_NAME}" > .env
 echo "LLM_ANALYSIS_TEXT_TABLE_NAME=${LLM_ANALYSIS_TEXT_TABLE_NAME}" >> .env
 echo "S3_BUCKET_NAME=${S3_BUCKET_NAME}" >> .env
