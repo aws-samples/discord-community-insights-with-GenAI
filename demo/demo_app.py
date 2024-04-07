@@ -8,9 +8,7 @@ from pathlib import Path
 
 script_path = Path(__file__).resolve()
 current_dir = script_path.parent
-env_dir = script_path.parent.parent
-
-dotenv.load_dotenv(os.path.join(env_dir,'.env'))
+dotenv.load_dotenv(os.path.join(current_dir,'.env'))
 st.set_page_config(
     page_title="舆情分析系统",
     page_icon="👋",
