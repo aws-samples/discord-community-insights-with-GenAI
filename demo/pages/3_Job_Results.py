@@ -8,9 +8,7 @@ from pathlib import Path
 
 script_path = Path(__file__).resolve()
 current_dir = script_path.parent
-env_dir = script_path.parent.parent.parent
-
-dotenv.load_dotenv(os.path.join(env_dir,'deploy/.env'))
+dotenv.load_dotenv(os.path.join(current_dir,'../.env'))
 domain_url = st.session_state.domain_url  if 'domain_url' in st.session_state else os.environ['domain_url']
 api_key = st.session_state.api_key  if 'api_key' in st.session_state else os.environ['apikeys']
 
@@ -26,6 +24,7 @@ sql = st.text_area(
     "Customize Sql(Optional)",
     placeholder="Just like: select count(1), sentiment from sentiment_result where job_id='xxxxxx' group by sentiment",
 )
+st.write(api_key)
 
 if st.button('实时查询'):
     if job_id.strip() == "":
@@ -37,7 +36,14 @@ if st.button('实时查询'):
       'x-api-key': api_key,
       'Content-Type': 'application/json'
     }
-    response = json.loads(requests.request("GET", url, headers=headers).text)
+    payload = json.dumps({
+        "job_id": job_id,
+        "sql": sql
+    })
+
+    response = json.loads(requests.request("Post", url, headers=headers, data = payload).text)
+
+    st.write(response)
 
     # 提取列名
     columns = [col_info["Name"] for col_info in response["ResultSet"]["ResultSetMetadata"]["ColumnInfo"]]
