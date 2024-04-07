@@ -80,6 +80,11 @@ headers = {
   'x-api-key': api_key,
   'Content-Type': 'application/json'
 }
-response = json.loads(requests.request("GET", url, headers=headers).text)
+payload = json.dumps({
+    "job_id": job_id,
+    "sql": sql
+})
+
+response = json.loads(requests.request("Post", url, headers=headers, data = payload).text)
 '''
 st.code(code, language='python')

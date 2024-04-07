@@ -85,17 +85,17 @@ code = '''
 import requests
 import json
 
-url = "https://xxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod//jobs"
+url = domain_url + "/jobs"
 
-payload = json.dumps({
-  "prompt_id": "248367b6-b36a-47fe-81c8-038579fb6b96"
-})
-headers = {
-  'x-api-key': 'xxxxxxxxxxxxx',
-  'Content-Type': 'application/json'
-}
-
-response = requests.request("POST", url, headers=headers, data=payload)
+    payload = json.dumps({
+      "prompt_id": selected_topic['id'],
+      "prefix": selected_data
+    })
+    headers = {
+      'x-api-key': api_key,
+      'Content-Type': 'application/json'
+    }
+    response = requests.request("POST", url, headers=headers, data=payload)
 
 print(response.text)
 '''
