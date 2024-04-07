@@ -2,9 +2,18 @@ import streamlit as st
 import time, requests, json
 
 import pandas as pd
+import dotenv
+import os
 
-domain_url = st.session_state.domain_url
-api_key = st.session_state.api_key
+from pathlib import Path
+
+script_path = Path(__file__).resolve()
+current_dir = script_path.parent
+env_dir = script_path.parent.parent.parent
+
+dotenv.load_dotenv(os.path.join(env_dir,'deploy/.env'))
+domain_url = st.session_state.domain_url  if 'domain_url' in st.session_state else os.environ['domain_url']
+api_key = st.session_state.api_key  if 'api_key' in st.session_state else os.environ['apikeys']
 
 url = domain_url + "/prompts"
 headers = {

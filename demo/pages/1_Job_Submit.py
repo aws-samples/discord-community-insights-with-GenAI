@@ -1,8 +1,18 @@
 import streamlit as st
 import time, requests, json
+import dotenv
+import os
 
-domain_url = st.session_state.domain_url
-api_key = st.session_state.api_key
+from pathlib import Path
+
+script_path = Path(__file__).resolve()
+current_dir = script_path.parent
+env_dir = script_path.parent.parent.parent
+
+dotenv.load_dotenv(os.path.join(env_dir,'deploy/.env'))
+
+domain_url = st.session_state.domain_url  if 'domain_url' in st.session_state else os.environ['domain_url']
+api_key = st.session_state.api_key  if 'api_key' in st.session_state else os.environ['apikeys']
 
 def submit_job():
     url = domain_url + "/jobs"
@@ -41,12 +51,20 @@ topics = [data['topic'] for data in prompts]
 st.title("提交分析任务")
 selected_topic_index = st.selectbox("=======>选择提示词<=======", topics)
 selected_data_index = st.selectbox("=======>选择源数据<=======", chatdata)
-
+st.text(f"chatdata:{chatdata}")
 # 根据选定的索引显示相应的 JSON 数据
-selected_topic = next(data for data in prompts if data['topic'] == selected_topic_index)
-selected_data = next(data for data in chatdata if data == selected_data_index)
+try:
+  selected_topic = next(data for data in prompts if data['topic'] == selected_topic_index)
+except StopIteration:
+  selected_topic = None
+  
+try:
+  selected_data = next(data for data in chatdata if data == selected_data_index)
+except StopIteration:
+  selected_data = None
+  
 
-if st.button('提交'):
+if st.button('提交') and selected_topic and selected_data:
 
     url = domain_url + "/jobs"
 
@@ -61,6 +79,8 @@ if st.button('提交'):
     response = requests.request("POST", url, headers=headers, data=payload)
     st.text(response.text)
     st.success('Submit success!', icon="✅")
+else:
+    st.error('Please select a topic and chat data!', icon="🚨")
 
 st.markdown("示例代码如下：")
 code = '''
