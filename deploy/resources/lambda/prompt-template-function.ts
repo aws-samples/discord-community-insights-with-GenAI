@@ -135,7 +135,7 @@ async function deleteDynamoDBData(event) {
         Key: marshall({ id: event.pathParameters.id }),
     };
 
-    await ddbClient.send(new DeleteCommand(params));
+    await ddbClient.send(new DeleteItemCommand(params));
     return buildResponse(200, '{"message": "Item deleted"}');
 }
 
