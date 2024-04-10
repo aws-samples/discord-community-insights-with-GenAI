@@ -5,4 +5,3 @@ domain_url="https://xxxx.execute-api.us-east-1.amazonaws.com/prod/"
 apikeys=""
 echo "domain_url=${domain_url}" >> .env
 echo "apikeys=${apikeys}" >> .env
-

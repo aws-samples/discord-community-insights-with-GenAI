@@ -49,7 +49,6 @@ topics = [data['topic'] for data in prompts]
 st.title("提交分析任务")
 selected_topic_index = st.selectbox("=======>选择提示词<=======", topics)
 selected_data_index = st.selectbox("=======>选择源数据<=======", chatdata)
-st.text(f"chatdata:{chatdata}")
 # 根据选定的索引显示相应的 JSON 数据
 try:
   selected_topic = next(data for data in prompts if data['topic'] == selected_topic_index)
