@@ -24,7 +24,6 @@ sql = st.text_area(
     "Customize Sql(Optional)",
     placeholder="Just like: select count(1), sentiment from sentiment_result where job_id='xxxxxx' group by sentiment",
 )
-st.write(api_key)
 
 if st.button('实时查询'):
     if job_id.strip() == "":
