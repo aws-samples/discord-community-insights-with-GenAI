@@ -2,6 +2,7 @@ import numpy as np
 import boto3
 import json
 import sys
+import pandas as pd
 import re
 import time
 import pickle
@@ -33,7 +34,7 @@ bucket = s3.Bucket(bucket_name)
 partition_key_name = 'id'
 partition_key_value = prompt_id
 
-# 查询记录
+# 查询提示词记录
 response = dynamodb.query(
     TableName=table_name,
     KeyConditionExpression=f'{partition_key_name} = :val',
@@ -64,7 +65,7 @@ llm_sonnet = BedrockChat(model_id="anthropic.claude-3-sonnet-20240229-v1:0",
                                })
 
 # 提取有价值聊天记录
-def extract_value_data(lines):
+def extract_value_data_from_text(lines):
     extracted_data = []
     # 提取聊天的正则表达式模式
     pattern = r'"m":"(.*?)"'
@@ -75,6 +76,14 @@ def extract_value_data(lines):
             text = match.group(1)
             if not text.startswith('link'):
                 extracted_data.append(text)
+    return extracted_data
+
+def extract_value_data_from_csv(lines):
+    extracted_data = []
+    # 遍历每一行
+    for line in lines:
+        if not line.startswith('link'):
+            extracted_data.append(line)
     return extracted_data
 
 # 切分文件
@@ -167,17 +176,28 @@ for obj in bucket.objects.filter(Prefix=prefix):
     if obj.key.endswith('/'):
         continue
     # 读取文件内容
-    body = obj.get()['Body'].read().decode('utf-8')
-    print(f'======>String Analysis File: {obj.key}')
-    # 将文件内容转换为字符串列表
-    lines = body.split('\n')
-    # 获取行数
-    num_lines = len(lines)
-    print(f'Total lines: {num_lines}')
 
-    # 获取有价值聊天记录
-    value_lines = extract_value_data(lines)
-    print(f'Value lines: {len(value_lines)}')
+    if obj.key.endswith('.csv'):
+        print(f'======>String Analysis File: {obj.key}')
+        df = pd.read_csv(obj.get()['Body'])
+        lines = df['_col6'].to_list()
+        # 获取行数
+        num_lines = len(lines)
+        print(f'Total lines: {num_lines}')
+
+        value_lines = extract_value_data_from_csv(lines)
+        print(f'Value lines: {len(value_lines)}')
+    else:
+        body = obj.get()['Body'].read().decode('utf-8')
+        # 将文件内容转换为字符串列表
+        lines = body.split('\n')
+        # 获取行数
+        num_lines = len(lines)
+        print(f'Total lines: {num_lines}')
+
+        # 获取有价值聊天记录
+        value_lines = extract_value_data_from_text(lines)
+        print(f'Value lines: {len(value_lines)}')
 
     # 切分文件
     chunks = split_into_chunks(value_lines,2000)
