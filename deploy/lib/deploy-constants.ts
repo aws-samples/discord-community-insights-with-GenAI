@@ -1,10 +1,10 @@
 import * as dotenv from "dotenv";
 dotenv.config();
-console.log('--------------------------')
-console.log(process.env.GLUE_JOB_NAME  )
 export class DeployConstant {
 
     public static readonly GLUE_JOB_NAME = process.env.GLUE_JOB_NAME ??''
+
+    public static readonly GLUE_DISCORD_JOB_NAME = process.env.GLUE_DISCORD_JOB_NAME ??''
 
     public static readonly LLM_ANALYSIS_TEXT_TABLE_NAME = process.env.LLM_ANALYSIS_TEXT_TABLE_NAME ??''
 
