@@ -1,8 +1,9 @@
 import * as glue from '@aws-cdk/aws-glue-alpha';
 import * as cdk from 'aws-cdk-lib';
-import {NestedStack} from 'aws-cdk-lib';
+import {NestedStack, CfnOutput} from 'aws-cdk-lib';
 import {Construct} from 'constructs';
 import * as iam from "aws-cdk-lib/aws-iam";
+import { Secret, SecretStringGenerator } from 'aws-cdk-lib/aws-secretsmanager';
 import * as path from "path";
 import {DeployConstant} from "./deploy-constants";
 
@@ -56,6 +57,23 @@ export class GlueStack extends NestedStack {
         this.jobName = job.jobName;
 
         /** Discord collect data job */
+
+        const secret = new Secret(this, 'MySecret', {
+            secretName: 'discord-token',
+            description: 'Discord Token',
+            generateSecretString: {
+                secretStringTemplate: JSON.stringify({ CHANNEL_ID: 123,  
+                    TOKEN: ''}),
+                generateStringKey: 'password',
+              },
+          });
+      
+        // 输出密钥的 ARN
+        new CfnOutput(this, 'SecretArn', {
+        value: secret.secretArn,
+        description: 'Discord Secret ARN',
+        });
+
         const discordScriptPath = path.resolve(__dirname, '../resources/glue-job-code/discord-message-collect.py');
 
         const discordJob = new glue.Job(this, 'glue-discord-job',{
@@ -79,6 +97,7 @@ export class GlueStack extends NestedStack {
                     "s3:List*",
                     "s3:Put*",
                     "s3:Get*",
+                    "secretsmanager:GetSecretValue",
                 ],
                 effect: iam.Effect.ALLOW,
                 resources: ['*'],

@@ -4,6 +4,7 @@ import asyncio
 import json
 import sys
 import boto3
+from botocore.exceptions import ClientError
 import logging
 from io import StringIO
 from awsglue.utils import getResolvedOptions
@@ -12,8 +13,6 @@ from awsglue.utils import getResolvedOptions
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
-TOKEN = ''  # 请替换为您的Discord机器人令牌
-CHANNEL_ID = 123  # 请替换为您想获取消息的频道ID
 
 # 处理参数信息
 args = getResolvedOptions(sys.argv, ['BUCKET_NAME', 'RAW_DATA_PREFIX'])
@@ -24,6 +23,26 @@ s3 = boto3.resource('s3')
 bucket = s3.Bucket(bucket_name)
 now = datetime.now()
 formatted_time = now.strftime("%Y-%m-%d-%H-%M-%S")
+
+def get_discord_token():
+    secret_name = "discord-token"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        raise e
+
+    return json.loads(get_secret_value_response['SecretString'])
 
 async def get_recent_messages(channel):
     print("Calculating one_week_ago...")
@@ -38,8 +57,8 @@ async def get_recent_messages(channel):
 async def on_ready():
     print(f'{client.user.name} has connected to Discord!')
     try:
-        channel = client.get_channel(CHANNEL_ID)
-        print(f'channel name : {channel.name}')
+        channel = client.get_channel(token_info.get('CHANNEL_ID')) # 此处需要确保channel id为数字
+        print(f'channel name : {channel}')
         recent_messages = await get_recent_messages(channel)
         persist_to_s3(channel.name, recent_messages)
     except Exception as e:
@@ -109,6 +128,10 @@ def to_json(obj):
         raise TypeError(f'Object of type {obj.__class__.__name__} is not JSON serializable')
 
 async def run_once():
-    await client.start(TOKEN)
+    global token_info
+    token_info = get_discord_token()
+    print(token_info)
+    print(type(token_info))
+    await client.start(token_info.get('TOKEN'))
 
 asyncio.run(run_once())
