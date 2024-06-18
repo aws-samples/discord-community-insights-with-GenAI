@@ -6,6 +6,8 @@ export class DeployConstant {
 
     public static readonly GLUE_DISCORD_JOB_NAME = process.env.GLUE_DISCORD_JOB_NAME ??''
 
+    public static readonly GLUE_SUMMARIZE_JOB_NAME = process.env.GLUE_SUMMARIZE_JOB_NAME ??''
+
     public static readonly LLM_ANALYSIS_TEXT_TABLE_NAME = process.env.LLM_ANALYSIS_TEXT_TABLE_NAME ??''
 
     /**
@@ -23,6 +25,8 @@ export class DeployConstant {
     public static readonly GLUE_DATABASE = process.env.GLUE_DATABASE??''
 
     public static readonly GLUE_TABLE = process.env.GLUE_TABLE??''
+    
+    public static readonly GLUE_SUMMARY_TABLE = process.env.GLUE_SUMMARY_TABLE??''
 
     private constructor() {}
 }

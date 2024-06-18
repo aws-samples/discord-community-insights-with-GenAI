@@ -13,7 +13,7 @@ export class DeployStack extends cdk.Stack {
 
 
     const texts3 = new S3Text(this, "text_s3");
-    const gluestack = new GlueStack(this,'glue-stack',{});
+    const gluestack = new GlueStack(this,'glue-stack',{texts3: texts3.textS3});
     const lambdastack = new LambdaStack(this,'lambda-stack',{});
     const apiGatewayStack = new ApigatewayStack(this, 'apigateway-stack', {
       promptTemplateFunction: lambdastack.promptTemplateFunction,
@@ -21,6 +21,8 @@ export class DeployStack extends cdk.Stack {
       getGlueJobFunction: lambdastack.getGlueJobFunction,
       getAthenaResultsFunction: lambdastack.getAthenaResultsFunction,
       getRawDataDirectoriesFunction: lambdastack.getRawDataDirectoriesFunction,
+      submitSummarizeJobFunction: lambdastack.submitSummarizeJobFunction,
+      getSummaryResultsFunction: lambdastack.getSummaryResultsFunction,
     })
     apiGatewayStack.addDependency(lambdastack);
     const dynamodbStack = new DynamodbStack(this,'dynamodb-stack',{});

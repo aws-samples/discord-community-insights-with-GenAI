@@ -5,7 +5,6 @@ import sys
 import pandas as pd
 import re
 import time
-import pickle
 from langchain_community.chat_models import BedrockChat
 from langchain_core.messages import HumanMessage,AIMessage
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler

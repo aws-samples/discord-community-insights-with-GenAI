@@ -13,6 +13,8 @@ export class LambdaStack extends NestedStack {
     public readonly getGlueJobFunction: lambda.IFunction;
     public readonly getAthenaResultsFunction: lambda.IFunction;
     public readonly getRawDataDirectoriesFunction: lambda.IFunction;
+    public readonly submitSummarizeJobFunction: lambda.IFunction;
+    public readonly getSummaryResultsFunction: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props?: cdk.NestedStackProps) {
         super(scope, id, props);
@@ -116,6 +118,30 @@ export class LambdaStack extends NestedStack {
             environment: {
                 'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
                 'RAW_DATA_PREFIX': DeployConstant.RAW_DATA_PREFIX,
+            },
+            ...functionSettings
+        });
+
+        this.submitSummarizeJobFunction = new lambdanodejs.NodejsFunction(this, 'SubmitSummarizeJob', {
+            functionName: 'submit-summarize-job',
+            entry: './resources/lambda/submit-summarize-glue-job.ts',
+            role: glueJobLambdaRole,
+            environment: {
+                'GLUE_JOB_NAME': DeployConstant.GLUE_SUMMARIZE_JOB_NAME,
+            },
+            timeout: Duration.minutes(10),
+            ...functionSettings
+        });
+
+        this.getSummaryResultsFunction = new lambdanodejs.NodejsFunction(this, 'GetSummaryResultsFunc', {
+            functionName: 'get-summary-results-func',
+            entry: './resources/lambda/summary-job-results.ts',
+            role: glueJobLambdaRole,
+            timeout: Duration.minutes(10),
+            environment: {
+                'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                'TABLE_NAME': DeployConstant.GLUE_SUMMARY_TABLE,
+                'DATABASE_NAME': DeployConstant.GLUE_DATABASE,
             },
             ...functionSettings
         });

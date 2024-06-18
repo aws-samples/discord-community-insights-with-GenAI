@@ -1,11 +1,17 @@
 import * as glue from '@aws-cdk/aws-glue-alpha';
 import * as cdk from 'aws-cdk-lib';
-import {NestedStack, CfnOutput} from 'aws-cdk-lib';
+import {NestedStack, CfnOutput, NestedStackProps} from 'aws-cdk-lib';
 import {Construct} from 'constructs';
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Secret, SecretStringGenerator } from 'aws-cdk-lib/aws-secretsmanager';
 import * as path from "path";
 import {DeployConstant} from "./deploy-constants";
+
+
+
+export interface GlueStackProps extends NestedStackProps {
+    texts3: cdk.aws_s3.Bucket,
+}
 
 export class GlueStack extends NestedStack {
 
@@ -19,8 +25,28 @@ export class GlueStack extends NestedStack {
      * @param {string} id
      * @param {StackProps=} props
      */
-    constructor(scope: Construct, id: string, props?: cdk.NestedStackProps) {
+    constructor(scope: Construct, id: string, props: GlueStackProps) {
         super(scope, id, props);
+
+        // const database = new glue.Database(this, 'llm-text-db2',{databaseName: DeployConstant.GLUE_DATABASE})
+        // const table = new glue.S3Table(this, 'llm-text-table2', {
+        //     database: database,
+        //     tableName: 'sentiment_result',
+        //     columns: [
+        //         { name: 'chat', type: glue.Schema.STRING },
+        //         { name: 'sentiment', type: glue.Schema.STRING },
+        //     ],
+        //     dataFormat: glue.DataFormat.JSON,
+        //     partitionKeys: [{ name: 'job_id', type: glue.Schema.STRING }],
+        //     bucket: props.texts3, // 替换为您的 S3 Bucket 名称
+        //     enablePartitionFiltering: true,
+        //     s3Prefix: '/result',
+        //     storageParameters: [
+        //         glue.StorageParameter.custom('projection.enabled', 'true'),
+        //         glue.StorageParameter.custom('projection.job_id.type', 'injected'),
+        //         glue.StorageParameter.custom('storage.location.template', 's3://' + props.texts3.bucketName + '/result/job_id=${job_id}'),
+        //     ]
+        // })
 
         const scriptPath = path.resolve(__dirname, '../resources/glue-job-code/llm-analysis-text.py');
 
@@ -88,7 +114,7 @@ export class GlueStack extends NestedStack {
             defaultArguments:{
                 '--BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
                 '--RAW_DATA_PREFIX': DeployConstant.RAW_DATA_PREFIX,
-                '--additional-python-modules': 'discord.py==2.3.2'
+                '--additional-python-modules': 'discord.py==2.3.2,langchain-aws==0.1.6,langchain-community==0.2.4'
             }
         })
         discordJob.role.addToPrincipalPolicy(
@@ -98,6 +124,8 @@ export class GlueStack extends NestedStack {
                     "s3:Put*",
                     "s3:Get*",
                     "secretsmanager:GetSecretValue",
+                    "dynamodb:*",
+                    "bedrock:*",
                 ],
                 effect: iam.Effect.ALLOW,
                 resources: ['*'],
@@ -105,6 +133,38 @@ export class GlueStack extends NestedStack {
         )
         this.discordJobArn = discordJob.jobArn;
         this.discordJobName = discordJob.jobName;
+
+
+        const summaryJobScriptPath = path.resolve(__dirname, '../resources/glue-job-code/llm-text-summarize.py');
+
+        const summaryJob = new glue.Job(this, 'glue-summarize-job',{
+            jobName: DeployConstant.GLUE_SUMMARIZE_JOB_NAME,
+            executable: glue.JobExecutable.pythonEtl({
+                glueVersion: glue.GlueVersion.V4_0,
+                pythonVersion: glue.PythonVersion.THREE,
+                script: glue.Code.fromAsset(summaryJobScriptPath),
+            }),
+            maxConcurrentRuns:200,
+            maxRetries:0,
+            defaultArguments:{
+                '--BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                '--GLUE_DATABASE': DeployConstant.GLUE_DATABASE,
+                '--GLUE_TABLE': DeployConstant.GLUE_TABLE,
+                '--additional-python-modules': 'langchain-aws==0.1.6,langchain-community==0.2.4,awswrangler==3.8.0,tiktoken==0.7.0'
+            }
+        })
+        summaryJob.role.addToPrincipalPolicy(
+            new iam.PolicyStatement({
+                actions: [
+                    "s3:*",
+                    "athena:*",
+                    "dynamodb:*",
+                    "bedrock:*",
+                ],
+                effect: iam.Effect.ALLOW,
+                resources: ['*'],
+            })
+        )
 
     }
 

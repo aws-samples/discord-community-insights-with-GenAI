@@ -13,6 +13,8 @@ export interface APIGatewayProps extends NestedStackProps {
     getGlueJobFunction: lambda.IFunction,
     getAthenaResultsFunction: lambda.IFunction,
     getRawDataDirectoriesFunction: lambda.IFunction,
+    submitSummarizeJobFunction: lambda.IFunction,
+    getSummaryResultsFunction: lambda.IFunction,
 }
 
 export class ApigatewayStack extends NestedStack {
@@ -61,12 +63,25 @@ export class ApigatewayStack extends NestedStack {
             }
         });
 
+        const summarizeJobRootPath = llmTextAnalysisAPI.root.addResource('summarize-jobs', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+
         chatDataRootPath.addMethod('GET', new _apigateway.LambdaIntegration(props.getRawDataDirectoriesFunction));
 
         jobsRootPath.addMethod('POST', new _apigateway.LambdaIntegration(props.startLLMAnalysisJobLambda));
         jobsRootPath.addMethod('GET', new _apigateway.LambdaIntegration(props.getGlueJobFunction), {
             requestParameters: {
                 'method.request.querystring.page_token': false
+            }
+        });
+
+        summarizeJobRootPath.addMethod('POST', new _apigateway.LambdaIntegration(props.submitSummarizeJobFunction));
+        summarizeJobRootPath.addMethod('GET', new _apigateway.LambdaIntegration(props.getSummaryResultsFunction),{
+            requestParameters: {
+                'method.request.querystring.job_id': true
             }
         });
 
