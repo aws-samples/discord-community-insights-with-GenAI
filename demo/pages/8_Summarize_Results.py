@@ -24,7 +24,7 @@ if st.button('实时查询'):
     if job_id.strip() == "":
         st.write("Job Id 不能为空")
 
-    url = domain_url + "/summarize-jobs?job_id=" + job_id
+    url = domain_url + "/summarize-jobs/" + job_id
 
     headers = {
       'x-api-key': api_key,
@@ -32,6 +32,7 @@ if st.button('实时查询'):
     }
 
     response = json.loads(requests.request("GET", url, headers=headers).text)
+
     # 提取列名
     columns = [col_info["Name"] for col_info in response["ResultSet"]["ResultSetMetadata"]["ColumnInfo"]]
 
@@ -40,11 +41,7 @@ if st.button('实时查询'):
 
     # 将每行数据转换为字典，并添加到列表中
     df = pd.DataFrame(columns=columns)
-
-
-    # 创建饼图
     
-
     # 遍历查询结果，并将值添加到DataFrame中
     for row in rows_data[1:]:
         values = [item.get('VarCharValue', '') for item in row]

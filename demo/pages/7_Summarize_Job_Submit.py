@@ -15,8 +15,8 @@ api_key = st.session_state.api_key  if 'api_key' in st.session_state else os.env
 
 st.title("提交总结任务")
 analysis_job_id = st.text_input(
-    "Enter Job Id👇 (required)",
-    placeholder="input job id",
+    "Enter Analysis Job Id👇 (required, can get from Job Results page)",
+    placeholder="input analysis job id",
 )
 
 
