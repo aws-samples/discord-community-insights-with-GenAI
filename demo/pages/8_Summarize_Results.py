@@ -3,7 +3,7 @@ import pandas as pd
 import time, requests, json
 import dotenv
 import os
-
+import matplotlib.pyplot as plt
 from pathlib import Path
 
 script_path = Path(__file__).resolve()
@@ -32,16 +32,18 @@ if st.button('实时查询'):
     }
 
     response = json.loads(requests.request("GET", url, headers=headers).text)
-    st.text(response)
     # 提取列名
     columns = [col_info["Name"] for col_info in response["ResultSet"]["ResultSetMetadata"]["ColumnInfo"]]
 
     # 提取行数据
     rows_data = [row["Data"] for row in response["ResultSet"]["Rows"] if row.get("Data")]
 
-
     # 将每行数据转换为字典，并添加到列表中
     df = pd.DataFrame(columns=columns)
+
+
+    # 创建饼图
+    
 
     # 遍历查询结果，并将值添加到DataFrame中
     for row in rows_data[1:]:
@@ -51,10 +53,20 @@ if st.button('实时查询'):
             row_data[columns[i]] = values[i]
         df = df.append(row_data, ignore_index=True)
 
-    st.data_editor(
-        df,
-        hide_index=True,
-    )
+    counts_dict = df['counts'].apply(json.loads)
+    # 从字典中获取键值对
+    labels = counts_dict.apply(lambda x: list(x.keys()))
+    sizes = counts_dict.apply(lambda x: list(x.values()))
+    fig, ax = plt.subplots()
+    ax.pie(sizes[0], labels=labels[0], autopct='%1.1f%%')
+    ax.axis('equal')  # 设置x,y轴刻度相等,使饼图为正圆形
+
+    # 在 Streamlit 中显示
+    st.pyplot(fig)
+
+    summary_values = df['summary'].values
+    st.markdown(summary_values[0])
+
     st.success('Query success!', icon="✅")
 
     
