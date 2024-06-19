@@ -58,7 +58,7 @@ export class LambdaStack extends NestedStack {
         const functionSettings : lambdanodejs.NodejsFunctionProps = {
             handler: 'handler',
             runtime: lambda.Runtime.NODEJS_LATEST,
-            memorySize: 128,
+            memorySize: 1024,
             timeout: cdk.Duration.seconds(60),
             architecture: cdk.aws_lambda.Architecture.X86_64,
             logRetention: cdk.aws_logs.RetentionDays.ONE_WEEK
