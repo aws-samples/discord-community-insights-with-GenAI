@@ -15,6 +15,7 @@ export class LambdaStack extends NestedStack {
     public readonly getRawDataDirectoriesFunction: lambda.IFunction;
     public readonly submitSummarizeJobFunction: lambda.IFunction;
     public readonly getSummaryResultsFunction: lambda.IFunction;
+    public readonly getSummaryJobsFunction: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props?: cdk.NestedStackProps) {
         super(scope, id, props);
@@ -142,6 +143,17 @@ export class LambdaStack extends NestedStack {
                 'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
                 'TABLE_NAME': DeployConstant.GLUE_SUMMARY_TABLE,
                 'DATABASE_NAME': DeployConstant.GLUE_DATABASE,
+            },
+            ...functionSettings
+        });
+
+        this.getSummaryJobsFunction = new lambdanodejs.NodejsFunction(this, 'GetSummaryJobsFunction', {
+            functionName: 'get-summary-jobs-func',
+            entry: './resources/lambda/get-summary-job-list.ts',
+            role: glueJobLambdaRole,
+            timeout: Duration.minutes(10),
+            environment: {
+                'GLUE_SUMMARIZE_JOB_NAME': DeployConstant.GLUE_SUMMARIZE_JOB_NAME,
             },
             ...functionSettings
         });

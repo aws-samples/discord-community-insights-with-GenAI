@@ -7,7 +7,14 @@ const athenaClient = new AthenaClient();
 
 exports.handler = async (event, context) => {
     console.log(event)
-    const job_id = event.queryStringParameters.job_id;
+
+    if (!event.pathParameters || !event.pathParameters.id) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({ message: 'Bad request, without parameter job id' })
+        };
+    }
+    const job_id = event.pathParameters.id;
 
     let queryString = `SELECT * FROM ${tableName} WHERE job_id='${job_id}'`;
     console.log("query string:", queryString);

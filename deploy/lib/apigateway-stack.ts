@@ -15,6 +15,7 @@ export interface APIGatewayProps extends NestedStackProps {
     getRawDataDirectoriesFunction: lambda.IFunction,
     submitSummarizeJobFunction: lambda.IFunction,
     getSummaryResultsFunction: lambda.IFunction,
+    getSummaryJobsFunction: lambda.IFunction,
 }
 
 export class ApigatewayStack extends NestedStack {
@@ -79,11 +80,17 @@ export class ApigatewayStack extends NestedStack {
         });
 
         summarizeJobRootPath.addMethod('POST', new _apigateway.LambdaIntegration(props.submitSummarizeJobFunction));
-        summarizeJobRootPath.addMethod('GET', new _apigateway.LambdaIntegration(props.getSummaryResultsFunction),{
+        summarizeJobRootPath.addMethod('GET', new _apigateway.LambdaIntegration(props.getSummaryJobsFunction),{
             requestParameters: {
-                'method.request.querystring.job_id': true
+                'method.request.querystring.job_id': false
             }
         });
+        const singleSummarizeJobPath = summarizeJobRootPath.addResource('{id}', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+        singleSummarizeJobPath.addMethod("GET", new _apigateway.LambdaIntegration(props.getSummaryResultsFunction))
 
         const resultsPath = jobsRootPath.addResource("results", {
             defaultMethodOptions: {
