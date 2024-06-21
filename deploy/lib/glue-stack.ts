@@ -162,6 +162,41 @@ export class GlueStack extends NestedStack {
             })
         )
 
+        // Discord one click Job
+        const discord1clickScriptPath = path.resolve(__dirname, '../resources/glue-job-code/discord-one-click.py');
+
+        const discordOneclickJob = new glue.Job(this, 'discord-1click-job',{
+            jobName: DeployConstant.GLUE_DISCORD_1CLICK_JOB_NAME,
+            executable: glue.JobExecutable.pythonEtl({
+                glueVersion: glue.GlueVersion.V4_0,
+                pythonVersion: glue.PythonVersion.THREE,
+                script: glue.Code.fromAsset(discord1clickScriptPath),
+            }),
+            maxConcurrentRuns:200,
+            maxRetries:0,
+            defaultArguments:{
+                '--BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                '--GLUE_DATABASE': DeployConstant.GLUE_DATABASE,
+                '--GLUE_TABLE': DeployConstant.GLUE_TABLE,
+                '--SECRET_NAME': DeployConstant.DISCORD_SECRET_NAME,
+                '--RAW_DATA_PREFIX': DeployConstant.RAW_DATA_PREFIX,
+                '--additional-python-modules': 'discord.py==2.3.2,langchain-aws==0.1.6,langchain-community==0.2.4,awswrangler==3.8.0,tiktoken==0.7.0'
+            }
+        })
+        discordOneclickJob.role.addToPrincipalPolicy(
+            new iam.PolicyStatement({
+                actions: [
+                    "s3:*",
+                    "athena:*",
+                    "dynamodb:*",
+                    "secretsmanager:GetSecretValue",
+                    "bedrock:*",
+                ],
+                effect: iam.Effect.ALLOW,
+                resources: ['*'],
+            })
+        )
+
     }
 
 }

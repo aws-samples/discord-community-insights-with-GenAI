@@ -8,10 +8,10 @@ exports.handler = async (event,context) => {
     console.log(event);
     let body = JSON.parse(event.body);
     const newSecretValue = JSON.stringify({
-        CHANNEL_ID: Number(body.channel_id),
+        CHANNEL_ID: body.channel_id,
         TOKEN: body.token,
         RUNNING_CYCLE: body.running_cycle,
-        DATA_PERIOD: Number(body.data_period),
+        DATA_PERIOD: body.data_period,
     })
     console.log(newSecretValue)
     const command = new PutSecretValueCommand({
