@@ -6,6 +6,8 @@ import {Construct} from 'constructs';
 import * as iam from "aws-cdk-lib/aws-iam";
 import {DeployConstant} from "./deploy-constants";
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 
 export interface LambdaStackProps extends NestedStackProps {
     secret: Secret,
@@ -22,6 +24,8 @@ export class LambdaStack extends NestedStack {
     public readonly getSummaryResultsFunction: lambda.IFunction;
     public readonly getSummaryJobsFunction: lambda.IFunction;
     public readonly modifySecretFunction: lambda.IFunction;
+    public readonly getDiscord1ClickJobFunction: lambda.IFunction;
+    public readonly startDiscord1ClickJobFunction: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
@@ -176,6 +180,40 @@ export class LambdaStack extends NestedStack {
             },
             ...functionSettings
         });
+
+         // 获取discord 1click job 列表
+        this.getDiscord1ClickJobFunction = new lambdanodejs.NodejsFunction(this, 'GetDiscord1ClickJobFunction', {
+            functionName: 'get-discord1click-job',
+            entry: './resources/lambda/get-discord-1click-job.ts',
+            role: glueJobLambdaRole,
+            timeout: Duration.minutes(10),
+            environment: {
+                'GLUE_DISCORD_1CLICK_JOB_NAME': DeployConstant.GLUE_DISCORD_1CLICK_JOB_NAME,
+            },
+            ...functionSettings
+        });
+
+        // 启动discord 1click job
+        this.startDiscord1ClickJobFunction = new lambdanodejs.NodejsFunction(this, 'StartDiscord1ClickJobFunction', {
+            functionName: 'start-discord1click-job',
+            entry: './resources/lambda/start-discord-1click-job.ts',
+            role: glueJobLambdaRole,
+            timeout: Duration.minutes(10),
+            environment: {
+                'GLUE_DISCORD_1CLICK_JOB_NAME': DeployConstant.GLUE_DISCORD_1CLICK_JOB_NAME,
+            },
+            ...functionSettings
+        });
+
+
+        // 创建 EventBridge 规则，每 10 分钟触发一次
+        const rule = new events.Rule(this, 'discord-1click-rule', {
+            ruleName: 'discord-1click-rule',
+            schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
+        });
+    
+        // 将 Lambda 函数作为目标关联到规则
+        rule.addTarget(new targets.LambdaFunction(this.startDiscord1ClickJobFunction));
     }
 
 }
