@@ -21,7 +21,6 @@ headers = {
 # st.set_page_config(page_title="分析任务列表", layout="wide")
 st.title("Discord任务列表")
 response = requests.request("GET", url, headers=headers, data=payload)
-st.text(response)
 if response.status_code == 200:
     data= json.loads(response.text)
     df = pd.json_normalize(data['jobRuns'])
