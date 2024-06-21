@@ -15,6 +15,7 @@ export interface GlueStackProps extends NestedStackProps {
 
 export class GlueStack extends NestedStack {
 
+    public readonly secret:Secret
     jobArn = '';
     jobName = '';
     discordJobArn = '';
@@ -84,8 +85,8 @@ export class GlueStack extends NestedStack {
 
         /** Discord collect data job */
 
-        const secret = new Secret(this, 'MySecret', {
-            secretName: 'discord-token',
+        this.secret = new Secret(this, 'MySecret', {
+            secretName: DeployConstant.DISCORD_SECRET_NAME,
             description: 'Discord Token',
             generateSecretString: {
                 secretStringTemplate: JSON.stringify({ CHANNEL_ID: 123,  
@@ -93,12 +94,6 @@ export class GlueStack extends NestedStack {
                 generateStringKey: 'password',
               },
           });
-      
-        // 输出密钥的 ARN
-        new CfnOutput(this, 'SecretArn', {
-        value: secret.secretArn,
-        description: 'Discord Secret ARN',
-        });
 
         const discordScriptPath = path.resolve(__dirname, '../resources/glue-job-code/discord-message-collect.py');
 
@@ -113,6 +108,7 @@ export class GlueStack extends NestedStack {
             maxRetries:0,
             defaultArguments:{
                 '--BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                '--SECRET_NAME': DeployConstant.DISCORD_SECRET_NAME,
                 '--RAW_DATA_PREFIX': DeployConstant.RAW_DATA_PREFIX,
                 '--additional-python-modules': 'discord.py==2.3.2,langchain-aws==0.1.6,langchain-community==0.2.4'
             }

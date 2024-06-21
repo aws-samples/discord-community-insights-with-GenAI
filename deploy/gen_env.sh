@@ -10,6 +10,8 @@ GLUE_JOB_NAME="llm-analysis-text-job"
 GLUE_DISCORD_JOB_NAME="discord-message-collect-job"
 # Glue Discord 作业名称
 GLUE_SUMMARIZE_JOB_NAME="llm-summarize-job"
+# 存储discord token secretname
+DISCORD_SECRET_NAME="discord-token"
 # DynamoDB中存储prompt的表名
 LLM_ANALYSIS_TEXT_TABLE_NAME="prompt-template"
 # 存储原始数据以及分析结果的S3名称
@@ -31,3 +33,4 @@ echo "RAW_DATA_PREFIX=${RAW_DATA_PREFIX}" >> .env
 echo "GLUE_DATABASE=${GLUE_DATABASE}" >> .env
 echo "GLUE_TABLE=${GLUE_TABLE}" >> .env
 echo "GLUE_SUMMARY_TABLE=${GLUE_SUMMARY_TABLE}" >> .env
+echo "DISCORD_SECRET_NAME=${DISCORD_SECRET_NAME}" >> .env

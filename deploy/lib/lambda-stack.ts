@@ -1,10 +1,15 @@
 import * as cdk from 'aws-cdk-lib';
-import {Duration, NestedStack} from 'aws-cdk-lib';
+import {Duration, NestedStack, NestedStackProps} from 'aws-cdk-lib';
 import * as lambdanodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import {Construct} from 'constructs';
 import * as iam from "aws-cdk-lib/aws-iam";
 import {DeployConstant} from "./deploy-constants";
+import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
+
+export interface LambdaStackProps extends NestedStackProps {
+    secret: Secret,
+}
 
 export class LambdaStack extends NestedStack {
 
@@ -16,8 +21,9 @@ export class LambdaStack extends NestedStack {
     public readonly submitSummarizeJobFunction: lambda.IFunction;
     public readonly getSummaryResultsFunction: lambda.IFunction;
     public readonly getSummaryJobsFunction: lambda.IFunction;
+    public readonly modifySecretFunction: lambda.IFunction;
 
-    constructor(scope: Construct, id: string, props?: cdk.NestedStackProps) {
+    constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
 
         const glueJobLambdaRole = new iam.Role(this, 'ApigLambdaRole', {
@@ -27,6 +33,7 @@ export class LambdaStack extends NestedStack {
                 iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchFullAccess'),
                 iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonAthenaFullAccess'),
                 iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'),
+                iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'),
             ],
             inlinePolicies: {
                 'GlueFullAccess': new iam.PolicyDocument({
@@ -154,6 +161,18 @@ export class LambdaStack extends NestedStack {
             timeout: Duration.minutes(10),
             environment: {
                 'GLUE_SUMMARIZE_JOB_NAME': DeployConstant.GLUE_SUMMARIZE_JOB_NAME,
+            },
+            ...functionSettings
+        });
+
+        // 修改Secret Lambda
+        this.modifySecretFunction = new lambdanodejs.NodejsFunction(this, 'ModifySecretFunction', {
+            functionName: 'modify-secret-func',
+            entry: './resources/lambda/modify-secret-manager.ts',
+            role: glueJobLambdaRole,
+            timeout: Duration.minutes(10),
+            environment: {
+                'SECRET_ARN': props.secret.secretArn,
             },
             ...functionSettings
         });

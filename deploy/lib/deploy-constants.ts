@@ -10,6 +10,8 @@ export class DeployConstant {
 
     public static readonly LLM_ANALYSIS_TEXT_TABLE_NAME = process.env.LLM_ANALYSIS_TEXT_TABLE_NAME ??''
 
+    public static readonly DISCORD_SECRET_NAME = process.env.DISCORD_SECRET_NAME ??''
+
     /**
      * please modify the bucket name
      */

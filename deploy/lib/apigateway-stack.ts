@@ -16,6 +16,7 @@ export interface APIGatewayProps extends NestedStackProps {
     submitSummarizeJobFunction: lambda.IFunction,
     getSummaryResultsFunction: lambda.IFunction,
     getSummaryJobsFunction: lambda.IFunction,
+    modifySecretFunction: lambda.IFunction,
 }
 
 export class ApigatewayStack extends NestedStack {
@@ -116,6 +117,14 @@ export class ApigatewayStack extends NestedStack {
         singlePromptPath.addMethod("GET", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
         singlePromptPath.addMethod("PUT", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
         singlePromptPath.addMethod("DELETE", new _apigateway.LambdaIntegration(props.promptTemplateFunction))
+
+        const discordSecretsRootPath = llmTextAnalysisAPI.root.addResource('discord-secrets', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+
+        discordSecretsRootPath.addMethod("POST", new _apigateway.LambdaIntegration(props.modifySecretFunction))
 
         const usagePlan = llmTextAnalysisAPI.addUsagePlan('TestAPIKeyUsagePlan', {
             name: 'Test-GLWorkshop-UsagePlan',

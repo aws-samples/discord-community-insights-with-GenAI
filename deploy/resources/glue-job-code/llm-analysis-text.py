@@ -130,16 +130,17 @@ class CustOuputParser(BaseOutputParser[str]):
 class CustOuputParser2(BaseOutputParser[str]):
 
     def extract(self, content: str) -> tuple[str, str]:
-        pattern = r'"(.*?)" \[(.*?)\]'
+        pattern = r'\d\.\s(.*?)\[(.*?)\]'
         matches = re.findall(pattern, content)
         if matches:
             return [(text, sentiment) for text, sentiment in matches]
 
     def parse(self, text: str) -> str:
         results = self.extract(text)
+        print(results)
         output = []
         for text, sentiment in results:
-            output.append(json.dumps({"chat": text, "sentiment": sentiment}, ensure_ascii=False))
+            output.append(json.dumps({"chat": text.replace("\"",""), "sentiment": sentiment}, ensure_ascii=False))
         return "\n".join(output)
 
     @property

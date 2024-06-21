@@ -34,13 +34,11 @@ formatted_time = now.strftime("%Y-%m-%d-%H-%M-%S")
 
 def get_discord_token():
     secret_name = "discord-token"
-    region_name = "us-east-1"
 
     # Create a Secrets Manager client
     session = boto3.session.Session()
     client = session.client(
-        service_name='secretsmanager',
-        region_name=region_name
+        service_name='secretsmanager'
     )
 
     try:
