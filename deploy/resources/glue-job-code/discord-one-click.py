@@ -295,7 +295,15 @@ text_splitter = CharacterTextSplitter.from_tiktoken_encoder(
 split_docs = text_splitter.split_text(combined_chat)
 docs = [Document(page_content=doc) for doc in split_docs]
 
-prompt_template = """You are the summarizer of chat records for game players. You need to summarize the chat records within <content>, focusing primarily on opinions regarding in-game mechanisms and game items:
+llm_summarize = ChatBedrock(model_id="anthropic.claude-3-sonnet-20240229-v1:0",
+                  model_kwargs={"temperature": 0,
+                                "top_k":10,
+                                "max_tokens": 1024,
+                                "top_p":0.5
+                               })
+
+prompt_template = """You are the summarizer of chat records for game players. You need to summarize the chat records within <content> in Chinese, focusing primarily on opinions regarding in-game mechanisms and game items.
+You need to provide a summary based on three dimensions: positive feedback, negative feedback, and player suggestions. Additionally, you should provide typical player chat for each dimension.
 <content>
 {text}
 </content>
@@ -303,19 +311,19 @@ CONCISE SUMMARY:"""
 prompt = PromptTemplate.from_template(prompt_template)
 
 refine_template = (
-    "You are the summarizer of chat records for game players, your job is to produce a final summary\n"
+    "You are the summarizer of chat records for game players, your job is to produce a final summary in Chinese\n"
     "We have provided an existing summary up to a certain point: {existing_answer}\n"
     "We have the opportunity to refine the existing summary"
     "(only if needed) with some more context below.\n"
     "------------\n"
     "{text}\n"
     "------------\n"
-    "Given the new context, refine the original summary in Chinese"
+    "Given the new context, refine the original summary"
     "If the context isn't useful, return the original summary."
 )
 refine_prompt = PromptTemplate.from_template(refine_template)
 chain = load_summarize_chain(
-    llm=llm_sonnet,
+    llm=llm_summarize,
     chain_type="refine",
     question_prompt=prompt,
     refine_prompt=refine_prompt,
