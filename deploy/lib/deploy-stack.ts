@@ -25,6 +25,7 @@ export class DeployStack extends cdk.Stack {
       getSummaryResultsFunction: lambdastack.getSummaryResultsFunction,
       getSummaryJobsFunction: lambdastack.getSummaryJobsFunction,
       modifySecretFunction: lambdastack.modifySecretFunction,
+      getDiscord1ClickJobFunction: lambdastack.getDiscord1ClickJobFunction,
     })
     apiGatewayStack.addDependency(lambdastack);
     const dynamodbStack = new DynamodbStack(this,'dynamodb-stack',{});

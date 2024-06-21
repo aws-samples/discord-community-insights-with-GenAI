@@ -1,7 +1,11 @@
 import { SecretsManagerClient, PutSecretValueCommand } from "@aws-sdk/client-secrets-manager";
+import { EventBridgeClient, PutRuleCommand } from "@aws-sdk/client-eventbridge";
 
 const client = new SecretsManagerClient({});
+const ebclient = new EventBridgeClient({});
 const secret_arn = process.env.SECRET_ARN;
+const rule_name = process.env.RULE_NAME;
+
 
 exports.handler = async (event,context) => {
 
@@ -22,6 +26,15 @@ exports.handler = async (event,context) => {
     try {
         const response = await client.send(command);
         console.log(`密钥已成功更新为: ${newSecretValue}`);
+
+        const input = { // PutRuleRequest
+            Name: rule_name, // required
+            ScheduleExpression: body.running_cycle,
+            State: "ENABLED",
+        };
+        const putRuleCommand = new PutRuleCommand(input);
+        const ebresponse = await ebclient.send(putRuleCommand);
+        console.log(ebresponse)
 
         return {
             statusCode: 200,

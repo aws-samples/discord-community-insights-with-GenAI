@@ -65,27 +65,3 @@ if st.button('实时查询'):
     st.markdown(summary_values[0])
 
     st.success('Query success!', icon="✅")
-
-    
-
-
-st.markdown("示例代码如下：")
-code = '''
-import requests
-import pandas
-import json
-
-url = domain_url + "/jobs/results?job_id=" + job_id
-
-headers = {
-  'x-api-key': api_key,
-  'Content-Type': 'application/json'
-}
-payload = json.dumps({
-    "job_id": job_id,
-    "sql": sql
-})
-
-response = json.loads(requests.request("Post", url, headers=headers, data = payload).text)
-'''
-st.code(code, language='python')

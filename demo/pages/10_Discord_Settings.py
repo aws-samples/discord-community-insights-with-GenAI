@@ -30,7 +30,7 @@ running_cycle = st.text_area(
     "Running Cycle👇 (required)",
     key="running_cycle",
     height=12,
-    placeholder="Running Cyle, please input cron expression: like cron(0 12 * * ? *)",
+    placeholder="Running Cyle, please input cron expression: like cron(0 12 * * ? *), UTC +0 Timezone",
 )
 
 data_period = st.text_area(

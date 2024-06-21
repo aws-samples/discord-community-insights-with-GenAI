@@ -17,6 +17,7 @@ export interface APIGatewayProps extends NestedStackProps {
     getSummaryResultsFunction: lambda.IFunction,
     getSummaryJobsFunction: lambda.IFunction,
     modifySecretFunction: lambda.IFunction,
+    getDiscord1ClickJobFunction: lambda.IFunction,
 }
 
 export class ApigatewayStack extends NestedStack {
@@ -125,6 +126,14 @@ export class ApigatewayStack extends NestedStack {
         });
 
         discordSecretsRootPath.addMethod("POST", new _apigateway.LambdaIntegration(props.modifySecretFunction))
+
+        const discord1clickJobsRootPath = llmTextAnalysisAPI.root.addResource('discord-1click-jobs', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+
+        discord1clickJobsRootPath.addMethod("GET", new _apigateway.LambdaIntegration(props.getDiscord1ClickJobFunction))
 
         const usagePlan = llmTextAnalysisAPI.addUsagePlan('TestAPIKeyUsagePlan', {
             name: 'Test-GLWorkshop-UsagePlan',

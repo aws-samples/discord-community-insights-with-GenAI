@@ -38,6 +38,7 @@ export class LambdaStack extends NestedStack {
                 iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonAthenaFullAccess'),
                 iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'),
                 iam.ManagedPolicy.fromAwsManagedPolicyName('SecretsManagerReadWrite'),
+                iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEventBridgeFullAccess'),
             ],
             inlinePolicies: {
                 'GlueFullAccess': new iam.PolicyDocument({
@@ -177,6 +178,7 @@ export class LambdaStack extends NestedStack {
             timeout: Duration.minutes(10),
             environment: {
                 'SECRET_ARN': props.secret.secretArn,
+                'RULE_NAME': DeployConstant.EVENT_BRIDGE_RULE_NAME,
             },
             ...functionSettings
         });
@@ -208,7 +210,8 @@ export class LambdaStack extends NestedStack {
 
         // 创建 EventBridge 规则，每 10 分钟触发一次
         const rule = new events.Rule(this, 'discord-1click-rule', {
-            ruleName: 'discord-1click-rule',
+            ruleName: DeployConstant.EVENT_BRIDGE_RULE_NAME,
+            enabled: false,
             schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
         });
     
