@@ -72,6 +72,10 @@ async def on_ready():
         channel = client.get_channel(int(token_info.get('CHANNEL_ID'))) # 此处需要确保channel id为数字
         print(f'channel name : {channel}')
         recent_messages = await get_recent_messages(channel)
+        if not recent_messages:
+            logging.info("No recent messages found. Exiting program.")
+            await client.close()
+            sys.exit(0)
         persist_to_s3(channel.name, recent_messages)
     except Exception as e:
         # 记录异常信息
@@ -151,34 +155,31 @@ asyncio.run(run_once())
 
 
 # -----------------------------Start Analysis Task-------------------------------------------
-prompt_id = 'bfdff416-7f14-42b0-aff5-cb7f0333d1c2'
-table_name = 'prompt-template'
 result_prefix = 'result/'
-
 s3 = boto3.client('s3')
-dynamodb = boto3.client('dynamodb')
+prompt_sentiment = '''
+You are a chat message sentiment classifer
 
-# 设置提示词信息
-partition_key_name = 'id'
-partition_key_value = prompt_id
+Here is a document you will classify the senetiment
+<doc>
+{content}
+</doc>
+please list all the content then classify the sentiment of each content into [positive,neutral,negative]'
+Please follow below requirements:
+1. You will strictly be based on the document in <doc>.
+2. please enclose your analysis results in xml tag <sentiment>.
 
-# 查询提示词记录
-response = dynamodb.query(
-    TableName=table_name,
-    KeyConditionExpression=f'{partition_key_name} = :val',
-    ExpressionAttributeValues={
-        ':val': {'S': partition_key_value}
-    }
-)
-if len(response['Items']) == 0:
-    print("************Wrong PROMPT ID**************:",prompt_id)
+for example:
+<sentiment>
+1. "拍卖行多香" [positive]
+2. "我拍到好东西了" [positive]
+3. "拍卖行太差劲了" [negative]
+4. "auction sucks" [negative]
+5. "拍卖行有人发包" [neutral]
+</sentiment>
 
-topic = response['Items'][0]['topic']['S']
-prompt_rag = response['Items'][0]['prompt_rag']['S']
-prompt_sentiment = response['Items'][0]['prompt_sentiment']['S']
-
-print('topic:',topic)
-print('prompt_rag:',prompt_rag)
+Skip the preamble, go straight into the answer.
+'''
 print('prompt_sentiment:',prompt_sentiment)
 
 class CustOuputParser(BaseOutputParser[str]):
