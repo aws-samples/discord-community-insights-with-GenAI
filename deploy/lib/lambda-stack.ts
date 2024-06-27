@@ -23,7 +23,7 @@ export class LambdaStack extends NestedStack {
     public readonly submitSummarizeJobFunction: lambda.IFunction;
     public readonly getSummaryResultsFunction: lambda.IFunction;
     public readonly getSummaryJobsFunction: lambda.IFunction;
-    public readonly modifySecretFunction: lambda.IFunction;
+    public readonly modifyDiscordSettingsFunction: lambda.IFunction;
     public readonly getDiscord1ClickJobFunction: lambda.IFunction;
     public readonly startDiscord1ClickJobFunction: lambda.IFunction;
 
@@ -171,12 +171,13 @@ export class LambdaStack extends NestedStack {
         });
 
         // 修改Secret Lambda
-        this.modifySecretFunction = new lambdanodejs.NodejsFunction(this, 'ModifySecretFunction', {
-            functionName: 'modify-secret-func',
-            entry: './resources/lambda/modify-secret-manager.ts',
+        this.modifyDiscordSettingsFunction = new lambdanodejs.NodejsFunction(this, 'ModifyDiscordSettingsFunction', {
+            functionName: 'modify-discord-settings',
+            entry: './resources/lambda/modify-discord-settings.ts',
             role: glueJobLambdaRole,
             timeout: Duration.minutes(10),
             environment: {
+                'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
                 'SECRET_ARN': props.secret.secretArn,
                 'RULE_NAME': DeployConstant.EVENT_BRIDGE_RULE_NAME,
             },

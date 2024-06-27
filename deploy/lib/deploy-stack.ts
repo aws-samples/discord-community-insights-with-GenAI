@@ -24,7 +24,7 @@ export class DeployStack extends cdk.Stack {
       submitSummarizeJobFunction: lambdastack.submitSummarizeJobFunction,
       getSummaryResultsFunction: lambdastack.getSummaryResultsFunction,
       getSummaryJobsFunction: lambdastack.getSummaryJobsFunction,
-      modifySecretFunction: lambdastack.modifySecretFunction,
+      modifyDiscordSettingsFunction: lambdastack.modifyDiscordSettingsFunction,
       getDiscord1ClickJobFunction: lambdastack.getDiscord1ClickJobFunction,
     })
     apiGatewayStack.addDependency(lambdastack);

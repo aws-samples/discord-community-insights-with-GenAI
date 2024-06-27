@@ -5,6 +5,7 @@ const client = new SecretsManagerClient({});
 const ebclient = new EventBridgeClient({});
 const secret_arn = process.env.SECRET_ARN;
 const rule_name = process.env.RULE_NAME;
+const bucketName = process.env.BUCKET_NAME;
 
 
 exports.handler = async (event,context) => {
