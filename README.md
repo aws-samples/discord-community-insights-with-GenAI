@@ -6,3 +6,4 @@
 ```shell
 streamlit run demo_app.py --server.port 6001
 ```
+#### 默认用户名密码 `seanguo/abc`
