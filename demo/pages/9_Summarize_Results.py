@@ -41,14 +41,18 @@ if st.button('实时查询'):
 
     # 将每行数据转换为字典，并添加到列表中
     df = pd.DataFrame(columns=columns)
-    
-    # 遍历查询结果，并将值添加到DataFrame中
+    rows = []
+
+    # 遍历查询结果，并将值添加到列表中
     for row in rows_data[1:]:
         values = [item.get('VarCharValue', '') for item in row]
         row_data = {}
         for i in range(len(columns)):
             row_data[columns[i]] = values[i]
-        df = df.append(row_data, ignore_index=True)
+        rows.append(row_data)
+
+    # 使用pd.concat()将列表转换为DataFrame
+    df = pd.concat([df, pd.DataFrame(rows)], ignore_index=True)
 
     counts_dict = df['counts'].apply(json.loads)
     # 从字典中获取键值对
