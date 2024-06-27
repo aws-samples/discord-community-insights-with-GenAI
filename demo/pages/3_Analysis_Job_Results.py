@@ -3,9 +3,8 @@ import pandas as pd
 import time, requests, json
 import dotenv
 import os
-import matplotlib.pyplot as plt
-from pathlib import Path
 
+from pathlib import Path
 if st.session_state["authentication_status"]:
     script_path = Path(__file__).resolve()
     current_dir = script_path.parent
@@ -17,22 +16,31 @@ if st.session_state["authentication_status"]:
         print("查看结果")
 
     job_id = st.text_input(
-        "Enter Summarize Job Id👇 (required)",
+        "Enter Job Id👇 (required)",
         placeholder="input job id",
+    )
+
+    sql = st.text_area(
+        "Customize Sql(Optional)",
+        placeholder="Just like: select count(1), sentiment from sentiment_result where job_id='xxxxxx' group by sentiment",
     )
 
     if st.button('实时查询'):
         if job_id.strip() == "":
             st.write("Job Id 不能为空")
 
-        url = domain_url + "/summarize-jobs/" + job_id
+        url = domain_url + "/jobs/results?job_id=" + job_id
 
         headers = {
         'x-api-key': api_key,
         'Content-Type': 'application/json'
         }
+        payload = json.dumps({
+            "job_id": job_id,
+            "sql": sql
+        })
 
-        response = json.loads(requests.request("GET", url, headers=headers).text)
+        response = json.loads(requests.request("Post", url, headers=headers, data = payload).text)
 
         # 提取列名
         columns = [col_info["Name"] for col_info in response["ResultSet"]["ResultSetMetadata"]["ColumnInfo"]]
@@ -40,35 +48,22 @@ if st.session_state["authentication_status"]:
         # 提取行数据
         rows_data = [row["Data"] for row in response["ResultSet"]["Rows"] if row.get("Data")]
 
+
         # 将每行数据转换为字典，并添加到列表中
         df = pd.DataFrame(columns=columns)
-        rows = []
 
-        # 遍历查询结果，并将值添加到列表中
+        # 遍历查询结果，并将值添加到DataFrame中
         for row in rows_data[1:]:
             values = [item.get('VarCharValue', '') for item in row]
             row_data = {}
             for i in range(len(columns)):
                 row_data[columns[i]] = values[i]
-            rows.append(row_data)
+            df = df.append(row_data, ignore_index=True)
 
-        # 使用pd.concat()将列表转换为DataFrame
-        df = pd.concat([df, pd.DataFrame(rows)], ignore_index=True)
-
-        counts_dict = df['counts'].apply(json.loads)
-        # 从字典中获取键值对
-        labels = counts_dict.apply(lambda x: list(x.keys()))
-        sizes = counts_dict.apply(lambda x: list(x.values()))
-        fig, ax = plt.subplots()
-        ax.pie(sizes[0], labels=labels[0], autopct='%1.1f%%')
-        ax.axis('equal')  # 设置x,y轴刻度相等,使饼图为正圆形
-
-        # 在 Streamlit 中显示
-        st.pyplot(fig)
-
-        summary_values = df['summary'].values
-        st.markdown(summary_values[0])
-
+        st.data_editor(
+            df,
+            hide_index=True,
+        )
         st.success('Query success!', icon="✅")
 else:
    st.error("please login first")
