@@ -6,7 +6,7 @@ import os
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-if st.session_state["authentication_status"]:
+if 'authentication_status' in st.session_state and st.session_state["authentication_status"]:
     script_path = Path(__file__).resolve()
     current_dir = script_path.parent
     dotenv.load_dotenv(os.path.join(current_dir,'../.env'))

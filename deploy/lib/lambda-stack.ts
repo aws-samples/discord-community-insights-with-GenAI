@@ -6,8 +6,6 @@ import {Construct} from 'constructs';
 import * as iam from "aws-cdk-lib/aws-iam";
 import {DeployConstant} from "./deploy-constants";
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
-import * as events from 'aws-cdk-lib/aws-events';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
 
 export interface LambdaStackProps extends NestedStackProps {
     secret: Secret,
@@ -170,20 +168,6 @@ export class LambdaStack extends NestedStack {
             ...functionSettings
         });
 
-        // 修改Secret Lambda
-        this.modifyDiscordSettingsFunction = new lambdanodejs.NodejsFunction(this, 'ModifyDiscordSettingsFunction', {
-            functionName: 'modify-discord-settings',
-            entry: './resources/lambda/modify-discord-settings.ts',
-            role: glueJobLambdaRole,
-            timeout: Duration.minutes(10),
-            environment: {
-                'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
-                'SECRET_ARN': props.secret.secretArn,
-                'RULE_NAME': DeployConstant.EVENT_BRIDGE_RULE_NAME,
-            },
-            ...functionSettings
-        });
-
          // 获取discord 1click job 列表
         this.getDiscord1ClickJobFunction = new lambdanodejs.NodejsFunction(this, 'GetDiscord1ClickJobFunction', {
             functionName: 'get-discord1click-job',
@@ -208,16 +192,18 @@ export class LambdaStack extends NestedStack {
             ...functionSettings
         });
 
-
-        // 创建 EventBridge 规则，每 10 分钟触发一次
-        const rule = new events.Rule(this, 'discord-1click-rule', {
-            ruleName: DeployConstant.EVENT_BRIDGE_RULE_NAME,
-            enabled: false,
-            schedule: events.Schedule.rate(cdk.Duration.minutes(10)),
+        // 修改Secret Lambda
+        this.modifyDiscordSettingsFunction = new lambdanodejs.NodejsFunction(this, 'ModifyDiscordSettingsFunction', {
+            functionName: 'modify-discord-settings',
+            entry: './resources/lambda/modify-discord-settings.ts',
+            role: glueJobLambdaRole,
+            timeout: Duration.minutes(10),
+            environment: {
+                'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                'START_DISCORD_JOB_FUNC': this.startDiscord1ClickJobFunction.functionArn,
+            },
+            ...functionSettings
         });
-    
-        // 将 Lambda 函数作为目标关联到规则
-        rule.addTarget(new targets.LambdaFunction(this.startDiscord1ClickJobFunction));
     }
 
 }
