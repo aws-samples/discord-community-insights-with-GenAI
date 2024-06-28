@@ -1,6 +1,6 @@
 import { AthenaClient, StartQueryExecutionCommand, GetQueryExecutionCommand, GetQueryResultsCommand } from '@aws-sdk/client-athena';
 
-const tableName = process.env.TABLE_NAME;
+const tableName = process.env.USER_JOBS_TABLE_NAME;
 const dbName = process.env.DATABASE_NAME;
 const bucketName = process.env.BUCKET_NAME;
 const athenaClient = new AthenaClient();
@@ -9,18 +9,19 @@ exports.handler = async (event, context) => {
     console.log(event.body)
 
     let queryBody = JSON.parse(event.body);
-    if (!queryBody || !queryBody.job_id) {
+    if (!queryBody || !queryBody.username) {
         return {
             statusCode: 400,
-            body: JSON.stringify({'error': 'parameter job_id needed~!'})
+            body: JSON.stringify({'error': 'parameter username needed~!'})
         };
     }
-    const job_id = queryBody.job_id;
+    const username = queryBody.username;
 
-    let queryString = `SELECT * FROM ${tableName} WHERE job_id='${job_id}'`;
-    if (queryBody.sql) {
-        queryString = queryBody.sql
+    let queryString = `SELECT * FROM ${tableName} WHERE username='${username}' `;
+    if (queryBody.channel_name) {
+        queryString += ` and channel_name='${queryBody.channel_name}' `;
     }
+    queryString += ' order by timestamp desc limit 100 ';
     console.log("query string:", queryString);
 
     // 设置 Athena 查询参数

@@ -24,6 +24,7 @@ export class LambdaStack extends NestedStack {
     public readonly modifyDiscordSettingsFunction: lambda.IFunction;
     public readonly getDiscord1ClickJobFunction: lambda.IFunction;
     public readonly startDiscord1ClickJobFunction: lambda.IFunction;
+    public readonly getUserJobsFunction: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
@@ -204,10 +205,24 @@ export class LambdaStack extends NestedStack {
             ...functionSettings
         });
 
+        // add start discord lambda resource based policy
         this.startDiscord1ClickJobFunction.addPermission('AllowEventBridgeInvocation', {
             principal: new iam.ServicePrincipal('events.amazonaws.com'),
             action: 'lambda:InvokeFunction',
             sourceArn: `arn:aws:events:${this.region}:${this.account}:rule/*`, // Replace with your EventBridge rule ARN
+        });
+
+        this.getUserJobsFunction = new lambdanodejs.NodejsFunction(this, 'GetUserJobsFunction', {
+            functionName: 'get-user-jobs-func',
+            entry: './resources/lambda/get-user-jobs.ts',
+            role: glueJobLambdaRole,
+            timeout: Duration.minutes(10),
+            environment: {
+                'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                'USER_JOBS_TABLE_NAME': DeployConstant.USER_JOBS_TABLE,
+                'DATABASE_NAME': DeployConstant.GLUE_DATABASE,
+            },
+            ...functionSettings
         });
     }
 
