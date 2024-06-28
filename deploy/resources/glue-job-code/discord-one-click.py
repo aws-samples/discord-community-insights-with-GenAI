@@ -355,23 +355,20 @@ def persist_job_info():
     tz = pytz.timezone('Asia/Shanghai')
     # 获取当前时间,并转换为UTC+8时区时间
     now = datetime.now(tz)
-    milliseconds = now.microsecond
+    milliseconds = int(now.timestamp() * 1000)
     # 格式化时间字符串
     time_str = now.strftime('%Y-%m-%d %H:%M:%S')
     job_info = {
         "channel_id": channel_id,
-        "channel_name": channel,
+        "channel_name": channel.name,
         "message_count": message_count,
         "job_run_id": job_run_id,
         "run_time": time_str,
         "timestamp": milliseconds,
     }
-    s3.put_object(
-        Bucket=bucket_name, 
+    bucket.put_object(
         Key=job_info_prefix + 'username=' + token_info.get("USER_NAME") + '/' + str(milliseconds) + '.json',  # 文件在 S3 上的路径和文件名
         Body=json.dumps(job_info)
     )
 
 persist_job_info()
-
-
