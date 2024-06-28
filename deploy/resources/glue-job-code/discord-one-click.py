@@ -5,6 +5,7 @@ import json
 import re
 import time
 import sys
+import pytz
 import boto3
 from botocore.exceptions import ClientError
 import logging
@@ -70,6 +71,7 @@ async def get_recent_messages(channel):
 
 @client.event
 async def on_ready():
+    global channel
     print(f'{client.user.name} has connected to Discord!')
     try:
         channel = client.get_channel(int(channel_id)) # 此处需要确保channel id为数字
@@ -346,3 +348,30 @@ if message_count > 0:
     print("---------------End Summarize-----------------")
 else:
     print("!!!!!!!!!!!No message need to be Summarize!!!!!!!!!!!!!")
+
+def persist_job_info():
+
+    job_info_prefix = 'user-jobs/'
+    tz = pytz.timezone('Asia/Shanghai')
+    # 获取当前时间,并转换为UTC+8时区时间
+    now = datetime.now(tz)
+    milliseconds = now.microsecond
+    # 格式化时间字符串
+    time_str = now.strftime('%Y-%m-%d %H:%M:%S')
+    job_info = {
+        "channel_id": channel_id,
+        "channel_name": channel,
+        "message_count": message_count,
+        "job_run_id": job_run_id,
+        "run_time": time_str,
+        "timestamp": milliseconds,
+    }
+    s3.put_object(
+        Bucket=bucket_name, 
+        Key=job_info_prefix + 'username=' + token_info.get("USER_NAME") + '/' + str(milliseconds) + '.json',  # 文件在 S3 上的路径和文件名
+        Body=json.dumps(job_info)
+    )
+
+persist_job_info()
+
+

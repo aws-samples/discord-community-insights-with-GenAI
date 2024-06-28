@@ -35,6 +35,7 @@ exports.handler = async (event,context) => {
 
     try {
         const newSecretValue = JSON.stringify({
+            USER_NAME: username,
             CHANNEL_ID: body.channel_id,
             TOKEN: body.token,
             RUNNING_CYCLE: body.running_cycle,
