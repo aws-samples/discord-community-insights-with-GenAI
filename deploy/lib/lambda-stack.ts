@@ -199,10 +199,15 @@ export class LambdaStack extends NestedStack {
             role: glueJobLambdaRole,
             timeout: Duration.minutes(10),
             environment: {
-                'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
                 'START_DISCORD_JOB_FUNC': this.startDiscord1ClickJobFunction.functionArn,
             },
             ...functionSettings
+        });
+
+        this.startDiscord1ClickJobFunction.addPermission('AllowEventBridgeInvocation', {
+            principal: new iam.ServicePrincipal('events.amazonaws.com'),
+            action: 'lambda:InvokeFunction',
+            sourceArn: `arn:aws:events:${this.region}:${this.account}:rule/*`, // Replace with your EventBridge rule ARN
         });
     }
 

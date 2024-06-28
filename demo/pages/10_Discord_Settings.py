@@ -16,7 +16,7 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
     api_key = st.session_state.api_key  if 'api_key' in st.session_state else os.environ['apikeys']
 
     st.text(username)
-    channel_id = st.text_input(
+    channel_id = st.text_area(
         "Enter Channel ID (required)",
         placeholder="input channel id",
         key='channel_id',

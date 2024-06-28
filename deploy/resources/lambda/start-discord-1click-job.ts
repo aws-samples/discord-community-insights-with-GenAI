@@ -1,27 +1,39 @@
-import { GlueClient, StartJobRunCommand } from "@aws-sdk/client-glue";
+import { GlueClient, StartJobRunCommand, StartJobRunCommandOutput } from "@aws-sdk/client-glue";
+import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 
-const client = new GlueClient();
-const jobName = process.env.GLUE_DISCORD_1CLICK_JOB_NAME;
+const glueClient = new GlueClient({});
+const secretsManagerClient = new SecretsManagerClient({});
 
-exports.handler = async (event,context) => {
+exports.handler = async (event: { secretName: string }) => {
+    const secretValue = await getSecretValue(event.secretName);
+    const channelIds = secretValue.CHANNEL_ID.split('\n');
 
-    console.log(event)
+    const jobName = process.env.GLUE_DISCORD_1CLICK_JOB_NAME;
+    const results = await Promise.all(channelIds.map(channelId => startGlueJob(glueClient, jobName, channelId, event.secretName)));
+
+    console.log("Glue作业启动成功", results);
+    return {
+        statusCode: 200,
+        body: JSON.stringify('Glue作业启动成功'),
+    };
+};
+
+async function getSecretValue(secretName: string): Promise<{ CHANNEL_ID: string }> {
+    const input = { SecretId: secretName };
+    const command = new GetSecretValueCommand(input);
+    const response = await secretsManagerClient.send(command);
+    const secretValue = JSON.parse(response.SecretString);
+    return secretValue;
+}
+
+async function startGlueJob(client: GlueClient, jobName: string, channelId: string, secretName: string): Promise<StartJobRunCommandOutput> {
     const startJobRunCommand = new StartJobRunCommand({
         JobName: jobName,
+        Arguments: {
+            '--CHANNEL_ID': channelId,
+            '--SECRET_NAME': secretName,
+        },
     });
-
-    try {
-        const data = await client.send(startJobRunCommand);
-        console.log("Glue作业启动成功", data);
-        return {
-            statusCode: 200,
-            body: JSON.stringify('Glue作业启动成功'),
-        };
-    } catch (err) {
-        console.error("启动Glue作业失败", err);
-        return {
-            statusCode: 500,
-            body: JSON.stringify('启动Glue作业失败'),
-        };
-    }
-};
+    const data = await client.send(startJobRunCommand);
+    return data;
+}
