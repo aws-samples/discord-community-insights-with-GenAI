@@ -16,7 +16,7 @@ export interface APIGatewayProps extends NestedStackProps {
     submitSummarizeJobFunction: lambda.IFunction,
     getSummaryResultsFunction: lambda.IFunction,
     getSummaryJobsFunction: lambda.IFunction,
-    modifyDiscordSettingsFunction: lambda.IFunction,
+    discordSettingsFunction: lambda.IFunction,
     getDiscord1ClickJobFunction: lambda.IFunction,
     getUserJobsFunction: lambda.IFunction,
 }
@@ -126,8 +126,19 @@ export class ApigatewayStack extends NestedStack {
             }
         });
 
-        discordSecretsRootPath.addMethod("POST", new _apigateway.LambdaIntegration(props.modifyDiscordSettingsFunction))
+        discordSecretsRootPath.addMethod("POST", new _apigateway.LambdaIntegration(props.discordSettingsFunction))
 
+        const userDiscordSecretsRootPath = discordSecretsRootPath.addResource('{username}', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+        userDiscordSecretsRootPath.addMethod("GET", new _apigateway.LambdaIntegration(props.discordSettingsFunction),{
+            requestParameters: {
+                'method.request.path.username': true
+            }
+        })
+        
         const discord1clickJobsRootPath = llmTextAnalysisAPI.root.addResource('discord-1click-jobs', {
             defaultMethodOptions: {
                 apiKeyRequired: true

@@ -1,4 +1,4 @@
-import { SecretsManagerClient, PutSecretValueCommand, DescribeSecretCommand, CreateSecretCommand } from "@aws-sdk/client-secrets-manager";
+import { SecretsManagerClient, PutSecretValueCommand, DescribeSecretCommand, CreateSecretCommand, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
 import { EventBridgeClient, PutRuleCommand, PutTargetsCommand } from "@aws-sdk/client-eventbridge";
 
 const client = new SecretsManagerClient({});
@@ -12,9 +12,40 @@ const RULE_PREFIX = 'discord-rule-'
 exports.handler = async (event,context) => {
 
     console.log(event);
+
+    let response;
+
+    switch (event.httpMethod) {
+        case 'GET':
+            response = await getDiscordSettings(event);
+            break;
+        case 'POST':
+            response = await modifyDiscordSettings(event);
+            break;
+        default:
+            response = buildResponse(404, '{"message": "Unsupported method"}');
+    }
+    return response;
+};
+
+async function getDiscordSettings(event) {
+    if (event.pathParameters && event.pathParameters.username) {
+        const secretName = SECRET_PREFIX + event.pathParameters.username;
+        console.log("-------------------" + secretName);
+        const input = { SecretId: secretName };
+        const command = new GetSecretValueCommand(input);
+        const response = await client.send(command);
+        const secretValue = response.SecretString;
+        console.log("-------------------secretValue: " + secretValue);
+        return buildResponse(200, secretValue)
+    } else {
+        return buildResponse(500, '{"message": "please provide username"}')
+    }
+}
+
+async function modifyDiscordSettings(event) {
     let body = JSON.parse(event.body);
     let username = body.username;
-
     let secretName = SECRET_PREFIX + username
 
     //判断当前用户是否已经创建了Secret
@@ -83,23 +114,21 @@ exports.handler = async (event,context) => {
         console.log(response);
         console.log(`Target added to rule ${ruleName} successfully`);
 
-        return {
-            statusCode: 200,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(ebresponse)
-        };
+        return buildResponse(200, JSON.stringify(ebresponse));
 
     } catch (err) {
         console.error(err);
-        return {
-            statusCode: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(err)
-        };
-
+        return buildResponse(500, JSON.stringify(err));
     }
-};
+}
+
+
+function buildResponse(statusCode:Number, body) {
+    return {
+        statusCode,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body,
+    };
+}

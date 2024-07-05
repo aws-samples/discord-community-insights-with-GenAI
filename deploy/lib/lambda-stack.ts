@@ -21,7 +21,7 @@ export class LambdaStack extends NestedStack {
     public readonly submitSummarizeJobFunction: lambda.IFunction;
     public readonly getSummaryResultsFunction: lambda.IFunction;
     public readonly getSummaryJobsFunction: lambda.IFunction;
-    public readonly modifyDiscordSettingsFunction: lambda.IFunction;
+    public readonly discordSettingsFunction: lambda.IFunction;
     public readonly getDiscord1ClickJobFunction: lambda.IFunction;
     public readonly startDiscord1ClickJobFunction: lambda.IFunction;
     public readonly getUserJobsFunction: lambda.IFunction;
@@ -194,9 +194,9 @@ export class LambdaStack extends NestedStack {
         });
 
         // 修改Secret Lambda
-        this.modifyDiscordSettingsFunction = new lambdanodejs.NodejsFunction(this, 'ModifyDiscordSettingsFunction', {
-            functionName: 'modify-discord-settings',
-            entry: './resources/lambda/modify-discord-settings.ts',
+        this.discordSettingsFunction = new lambdanodejs.NodejsFunction(this, 'DiscordSettingsFunctions', {
+            functionName: 'discord-settings-functions',
+            entry: './resources/lambda/discord-settings-functions.ts',
             role: glueJobLambdaRole,
             timeout: Duration.minutes(10),
             environment: {

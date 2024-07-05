@@ -24,7 +24,7 @@ export class DeployStack extends cdk.Stack {
       submitSummarizeJobFunction: lambdastack.submitSummarizeJobFunction,
       getSummaryResultsFunction: lambdastack.getSummaryResultsFunction,
       getSummaryJobsFunction: lambdastack.getSummaryJobsFunction,
-      modifyDiscordSettingsFunction: lambdastack.modifyDiscordSettingsFunction,
+      discordSettingsFunction: lambdastack.discordSettingsFunction,
       getDiscord1ClickJobFunction: lambdastack.getDiscord1ClickJobFunction,
       getUserJobsFunction: lambdastack.getUserJobsFunction,
     })
