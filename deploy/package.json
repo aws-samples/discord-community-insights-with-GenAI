@@ -1,0 +1,31 @@
+{
+  "name": "deploy",
+  "version": "0.1.0",
+  "bin": {
+    "deploy": "bin/deploy.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-glue": "^3.540.0",
+    "@types/jest": "^29.5.11",
+    "@types/node": "20.11.5",
+    "aws-cdk": "^2.122.0",
+    "aws-sdk": "^2.1584.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.3.3"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-glue-alpha": "^2.133.0-alpha.0",
+    "@aws-sdk/client-athena": "^3.600.0",
+    "@aws-sdk/client-secrets-manager": "^3.600.0",
+    "aws-cdk-lib": "^2.133.0",
+    "constructs": "^10.0.0",
+    "dotenv": "^16.4.5",
+    "source-map-support": "^0.5.21"
+  }
+}

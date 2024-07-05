@@ -1,0 +1,269 @@
+{
+	"info": {
+		"_postman_id": "80610917-f175-461a-a154-0d08b28f736a",
+		"name": "LLM-TEXT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2238923"
+	},
+	"item": [
+		{
+			"name": "Prompts List",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}/prompts",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					],
+					"path": [
+						"prompts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Chat Data List",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}/chat-data",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					],
+					"path": [
+						"chat-data"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Prompts Add",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"topic\": \"拍卖行\",\n  \"prompt_rag\": \"You are an expert research assistant, tasked with identifying player sentiments regarding certain in-game items, neutral NPCs, and game market activities.\\n\\nHere is a document you will analyze\\n<doc>\\n{context}\\n</doc>\\n\\nHere is a task:\\nFirst, find the quotes from the document that are most relevant to {topic}, and then print them in numbered order. Quotes should be relatively short.\\nIf there are no relevant quotes, write \\\"No relevant quotes\\\" instead.\\nplease enclose your analysis results in xml tag <response>.\\n\\nfor example:\\n<response>\\n1. \\\"拍卖行多香\\\"\\n2. \\\"我拍到好东西了\\\"\\n3. \\\"拍卖行太差劲了\\\"\\n4. \\\"auction sucks\\\"\\n5. \\\"拍卖行有人发包\\\"\\n</response>\\n\\nSkip the preamble, go straight into the answer.\",\n  \"prompt_sentiment\": \"You are a chat message sentiment classifer\\n\\nHere is a document you will classify the senetiment\\n<doc>\\n{relevant_info}\\n</doc>\\n\\n\\nplease list all the content if it is relevant to {topic} and classify the sentiment of each content into [positive,neutral,negative]'\\n\\nPlease follow below requirements:\\n1. You will strictly be based on the document in <doc>.\\n2. please enclose your analysis results in xml tag <sentiment>.\\n\\nfor example:\\n<sentiment>\\n1. \\\"拍卖行多香\\\" [positive]\\n2. \\\"我拍到好东西了\\\" [positive]\\n3. \\\"拍卖行太差劲了\\\" [negative]\\n4. \\\"auction sucks\\\" [negative]\\n5. \\\"拍卖行有人发包\\\" [neutral]\\n</sentiment>\\n\\nSkip the preamble, go straight into the answer.\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}/prompts",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					],
+					"path": [
+						"prompts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "submit-job",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"prompt_id\": \"248367b6-b36a-47fe-81c8-038579fb6b96\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}/jobs",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					],
+					"path": [
+						"jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "list-job",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"prompt_id\": \"248367b6-b36a-47fe-81c8-038579fb6b96\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}/jobs",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					],
+					"path": [
+						"jobs"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ahena-results",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"sql\": \"select count(1), sentiment from sentiment_result where 1=1 and job_id='jr_7d1fd71eae0d9eb68700725b5e37768b201aa29faaba85c1e6d46f2567d9c92c' group by sentiment\",\n    \"job_id\": \"jr_7d1fd71eae0d9eb68700725b5e37768b201aa29faaba85c1e6d46f2567d9c92c\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}/jobs/results",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					],
+					"path": [
+						"jobs",
+						"results"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Prompts Update",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n        \"prompt_sentiment\": \"You are a chat message sentiment classifer\\n\\nHere is a document you will classify the senetiment\\n<doc>\\n{relevant_info}\\n</doc>\\n\\n\\nplease list all the content if it is relevant to {topic} and classify the sentiment of each content into [positive,neutral,negative]'\\n\\nPlease follow below requirements:\\n1. You will strictly be based on the document in <doc>.\\n2. please enclose your analysis results in xml tag <sentiment>.\\n\\nfor example:\\n<sentiment>\\n1. \\\"拍卖行多香\\\" [positive]\\n2. \\\"我拍到好东西了\\\" [positive]\\n3. \\\"拍卖行太差劲了\\\" [negative]\\n4. \\\"auction sucks\\\" [negative]\\n5. \\\"拍卖行有人发包\\\" [neutral]\\n</sentiment>\\n\\nSkip the preamble, go straight into the answer.\",\n        \"prompt_rag\": \"You are an expert research assistant, tasked with identifying player sentiments regarding certain in-game items, neutral NPCs, and game market activities.\\n\\nHere is a document you will analyze\\n<doc>\\n{context}\\n</doc>\\n\\nHere is a task:\\nFirst, find the quotes from the document that are most relevant to {topic}, and then print them in numbered order. Quotes should be relatively short.\\nIf there are no relevant quotes, write \\\"No relevant quotes\\\" instead.\\nplease enclose your analysis results in xml tag <response>.\\n\\nfor example:\\n<response>\\n1. \\\"拍卖行多香\\\"\\n2. \\\"我拍到好东西了\\\"\\n3. \\\"拍卖行太差劲了\\\"\\n4. \\\"auction sucks\\\"\\n5. \\\"拍卖行有人发包\\\"\\n</response>\\n\\nSkip the preamble, go straight into the answer.\",\n        \"id\": \"e5433e5c-b27e-443f-a93d-11a973507e55\",\n        \"topic\": \"拍卖行4\"\n    }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}/prompts/01873670-55c5-430b-822b-434a09756a4e",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					],
+					"path": [
+						"prompts",
+						"01873670-55c5-430b-822b-434a09756a4e"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Prompts Query",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}/prompts/01873670-55c5-430b-822b-434a09756a4e",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					],
+					"path": [
+						"prompts",
+						"01873670-55c5-430b-822b-434a09756a4e"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Prompts DELETE",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "{{API_KEY}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{API_GATEWAY_URL}}/prompts/0d8ddf2f-6152-41d2-9af8-91ba035b9106",
+					"host": [
+						"{{API_GATEWAY_URL}}"
+					],
+					"path": [
+						"prompts",
+						"0d8ddf2f-6152-41d2-9af8-91ba035b9106"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
