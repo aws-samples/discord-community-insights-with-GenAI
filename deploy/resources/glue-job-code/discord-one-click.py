@@ -59,14 +59,26 @@ def get_discord_token():
 
 async def get_recent_messages(channel):
     global message_count
-    print("Calculating one_week_ago...")
+    print("Calculating date_from...")
     data_period = int(token_info.get('DATA_PERIOD'))
-    one_week_ago = datetime.now() - timedelta(days=data_period)
-    print(f"one_week_ago: {one_week_ago}")
-    messages = [message async for message in channel.history(after=one_week_ago)]
-    message_data = [to_json(message) for message in messages]
+    date_from = datetime.now() - timedelta(days=data_period)
+    print(f"date_from: {date_from}")
+    
+    all_messages = []
+    async for message in channel.history(after=date_from, limit=100):
+        all_messages.append(message)
+        last_message = message
+
+    while True:
+        async for message in channel.history(after=date_from, before=last_message, limit=100):
+            all_messages.append(message)
+            last_message = message
+        if len(all_messages) % 100 != 0:
+            break
+
+    message_data = [to_json(message) for message in all_messages]
     message_count = len(message_data)
-    print(f"Messages count: {message_count}")
+    print(f"Messages count: {message_count}") 
     return message_data
 
 @client.event
@@ -128,8 +140,8 @@ def to_json(obj):
             'timestamp': obj.created_at.isoformat(),
             'edited_at': obj.edited_at.isoformat() if obj.edited_at else None,
             'attachments': [attachment.url for attachment in obj.attachments],
-            'embeds': [embed.to_dict() for embed in obj.embeds],
-            'reactions': [reaction.emoji for reaction in obj.reactions]
+            'embeds': [embed.to_dict() for embed in obj.embeds]
+            # 'reactions': [reaction.emoji for reaction in obj.reactions]
         }
     elif isinstance(obj, discord.TextChannel):
         return {

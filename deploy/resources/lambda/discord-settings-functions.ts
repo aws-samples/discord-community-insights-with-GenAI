@@ -75,7 +75,14 @@ async function modifyDiscordSettings(event) {
         console.log(newSecretValue)
 
         // 如果该用户还没有创建过Secret,则创建
-        if (secret_arn === '') {
+        if (secret_arn && secret_arn !== '') {
+            const command = new PutSecretValueCommand({
+                SecretId: secret_arn,
+                SecretString: newSecretValue,
+            });
+            const response = await client.send(command);
+            console.log(`密钥已成功更新为: ${newSecretValue}`);
+        } else {
             const params = {
                 Name: secretName,
                 SecretString: newSecretValue,
@@ -84,13 +91,6 @@ async function modifyDiscordSettings(event) {
             const response = await client.send(command);
             console.log(`Secret ${secretName} created successfully`);
             console.log("Response:", response);
-        } else {
-            const command = new PutSecretValueCommand({
-                SecretId: secret_arn,
-                SecretString: newSecretValue,
-            });
-            const response = await client.send(command);
-            console.log(`密钥已成功更新为: ${newSecretValue}`);
         }
 
         // 为当前用户创建EventBridge Schedule
