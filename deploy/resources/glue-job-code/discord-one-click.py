@@ -211,10 +211,13 @@ if message_count > 0:
     
         def parse(self, text: str) -> str:
             results = self.extract(text)
-            output = []
-            for text, sentiment in results:
-                output.append(json.dumps({"chat": text, "sentiment": sentiment}, ensure_ascii=False))
-            return "\n".join(output)
+            if results:
+                output = []
+                for text, sentiment in results:
+                    output.append(json.dumps({"chat": text, "sentiment": sentiment}, ensure_ascii=False))
+                return "\n".join(output)
+            else:
+                return ''
     
         @property
         def _type(self) -> str:
