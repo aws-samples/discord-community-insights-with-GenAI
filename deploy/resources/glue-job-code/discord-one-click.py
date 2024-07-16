@@ -71,7 +71,7 @@ async def get_recent_messages(channel):
 
     while True:
         flag = 0
-        async for message in channel.history(after=date_from, before=last_message, limit=100):
+        async for message in channel.history(after=last_message.created_at, limit=100):
             all_messages.append(message)
             last_message = message
             flag += 1
