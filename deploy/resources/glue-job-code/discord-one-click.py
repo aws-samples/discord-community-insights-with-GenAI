@@ -104,7 +104,7 @@ async def on_ready():
 
 # 将用户信息写入S3中保存
 def persist_to_s3(channel_name, messages):
-    print(messages)
+
     global prefix_key
     output_buffer = StringIO()
 
@@ -298,16 +298,14 @@ if message_count > 0:
     
     # 读取数据并应用过滤条件
     df = wr.athena.read_sql_query(f'SELECT * FROM sentiment_result where job_id=\'{job_run_id}\'', database=glue_db)
-    print(df)
+
     sentiment_counts = df.groupby('sentiment').size()
-    print(sentiment_counts)
     sentiment_counts_json = sentiment_counts.to_json(orient='index')
     print(sentiment_counts_json)
                                   
     chat_content = df['chat']
     # 使用str.cat()方法将每一行内容添加回车符号并连接在一起
     combined_chat = chat_content.str.cat(sep='\n')
-    print(combined_chat)
     
     text_splitter = CharacterTextSplitter.from_tiktoken_encoder(
         chunk_size=1000, chunk_overlap=100
