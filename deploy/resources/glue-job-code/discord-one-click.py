@@ -70,10 +70,12 @@ async def get_recent_messages(channel):
         last_message = message
 
     while True:
+        flag = 0
         async for message in channel.history(after=date_from, before=last_message, limit=100):
             all_messages.append(message)
             last_message = message
-        if len(all_messages) % 100 != 0:
+            flag += 1
+        if flag == 0:
             break
 
     message_data = [to_json(message) for message in all_messages]
