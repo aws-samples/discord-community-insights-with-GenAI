@@ -1,11 +1,11 @@
 credentials:
   usernames:
-    seanguo:
+    admin:
       email: seanguo@amazon.com
       failed_login_attempts: 0 # Will be managed automatically
       logged_in: True # Will be managed automatically
       name: Sean Guo
-      password: $2b$12$3kVpdhhx/4Je.G0SPd4kgeSuxDiZOY0qlI4yBtwDAYDti1RtnWUYO
+      password: $2b$12$b7C3AvU.2VXRrgG9VAkof.3ljAY02z9n81IhReIwqRWK.oDi4DzL6 # default password: 1234
 cookie:
   expiry_days: 30
   key: some_signature_key # Must be string
