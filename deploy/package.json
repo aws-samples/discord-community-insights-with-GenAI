@@ -14,7 +14,7 @@
     "@aws-sdk/client-glue": "^3.540.0",
     "@types/jest": "^29.5.11",
     "@types/node": "20.11.5",
-    "aws-cdk": "^2.122.0",
+    "aws-cdk": "2.155.0",
     "aws-sdk": "^2.1584.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.3.3"
@@ -22,10 +22,15 @@
   "dependencies": {
     "@aws-cdk/aws-glue-alpha": "^2.133.0-alpha.0",
     "@aws-sdk/client-athena": "^3.620.1",
+    "@aws-sdk/client-dynamodb": "^3.682.0",
+    "@aws-sdk/client-eventbridge": "^3.682.0",
+    "@aws-sdk/client-s3": "^3.682.0",
     "@aws-sdk/client-secrets-manager": "3.620.1",
-    "aws-cdk-lib": "^2.150.0",
+    "@aws-sdk/util-dynamodb": "^3.682.0",
+    "aws-cdk-lib": "2.155.0",
     "constructs": "^10.0.0",
     "dotenv": "^16.4.5",
+    "esbuild": "^0.24.0",
     "source-map-support": "^0.5.21"
   }
 }
