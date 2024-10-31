@@ -24,6 +24,13 @@ GLUE_DATABASE="llm_text_db"
 GLUE_TABLE="sentiment_result"
 # Glue Catalog中查询S3中总结数据使用表名
 GLUE_SUMMARY_TABLE="summary_result"
+# Webhook Settings DDB表名
+DDB_WEBHOOK_SETTINGS_TABLE="webhook-settings"
+# Category Settings DDB表名
+DDB_CATEGORY_SETTINGS_TABLE="category-settings"
+# User Jobs DDB表名
+DDB_CATEGORY_SETTINGS_TABLE="user-jobs"
+
 echo "GLUE_JOB_NAME=${GLUE_JOB_NAME}" >> .env
 echo "GLUE_DISCORD_JOB_NAME=${GLUE_DISCORD_JOB_NAME}" >> .env
 echo "GLUE_SUMMARIZE_JOB_NAME=${GLUE_SUMMARIZE_JOB_NAME}" >> .env
@@ -34,3 +41,6 @@ echo "GLUE_DATABASE=${GLUE_DATABASE}" >> .env
 echo "GLUE_TABLE=${GLUE_TABLE}" >> .env
 echo "GLUE_SUMMARY_TABLE=${GLUE_SUMMARY_TABLE}" >> .env
 echo "DISCORD_SECRET_NAME=${DISCORD_SECRET_NAME}" >> .env
+echo "DDB_WEBHOOK_SETTINGS_TABLE=${DDB_WEBHOOK_SETTINGS_TABLE}" >> .env
+echo "DDB_CATEGORY_SETTINGS_TABLE=${DDB_CATEGORY_SETTINGS_TABLE}" >> .env
+echo "DDB_USER_JOBS_TABLE=${DDB_USER_JOBS_TABLE}" >> .env

@@ -42,5 +42,90 @@ export class DynamodbStack extends NestedStack {
         writeScaling.scaleOnUtilization({
             targetUtilizationPercent: 65,
         });
+
+        const webhook_settings_table = new Table(this, "webhook_settings_table", {
+            tableName: DeployConstant.DDB_WEBHOOK_SETTINGS_TABLE,
+            partitionKey: {
+                name: "id",
+                type: AttributeType.STRING,
+            },
+            pointInTimeRecovery: true,
+            removalPolicy: RemovalPolicy.DESTROY, // NOT recommended for production code
+        });
+
+        const webhookReadScaling = webhook_settings_table.autoScaleReadCapacity({
+            minCapacity: 1,
+            maxCapacity: 10,
+        });
+
+        webhookReadScaling.scaleOnUtilization({
+            targetUtilizationPercent: 65,
+        });
+
+        const webhookWriteScaling = webhook_settings_table.autoScaleWriteCapacity({
+            minCapacity: 1,
+            maxCapacity: 10,
+        });
+
+        webhookWriteScaling.scaleOnUtilization({
+            targetUtilizationPercent: 65,
+        });
+
+        const category_settings_table = new Table(this, "category_settings_table", {
+            tableName: DeployConstant.DDB_CATEGORY_SETTINGS_TABLE,
+            partitionKey: {
+                name: "id",
+                type: AttributeType.STRING,
+            },
+            pointInTimeRecovery: true,
+            removalPolicy: RemovalPolicy.DESTROY, // NOT recommended for production code
+        });
+
+        const categoryReadScaling = category_settings_table.autoScaleReadCapacity({
+            minCapacity: 1,
+            maxCapacity: 10,
+        });
+
+        categoryReadScaling.scaleOnUtilization({
+            targetUtilizationPercent: 65,
+        });
+
+        const categoryWriteScaling = category_settings_table.autoScaleWriteCapacity({
+            minCapacity: 1,
+            maxCapacity: 10,
+        });
+
+        categoryWriteScaling.scaleOnUtilization({
+            targetUtilizationPercent: 65,
+        });
+
+        const user_jobs_table = new Table(this, "user_jobs_table", {
+            tableName: DeployConstant.DDB_USER_JOBS_TABLE,
+            partitionKey: {
+                name: "id",
+                type: AttributeType.STRING,
+            },
+            pointInTimeRecovery: true,
+            removalPolicy: RemovalPolicy.DESTROY, // NOT recommended for production code
+        });
+
+        const userJobsReadScaling = user_jobs_table.autoScaleReadCapacity({
+            minCapacity: 1,
+            maxCapacity: 10,
+        });
+
+        userJobsReadScaling.scaleOnUtilization({
+            targetUtilizationPercent: 65,
+        });
+
+        const userJobsWriteScaling = user_jobs_table.autoScaleWriteCapacity({
+            minCapacity: 1,
+            maxCapacity: 10,
+        });
+
+        userJobsWriteScaling.scaleOnUtilization({
+            targetUtilizationPercent: 65,
+        });
+
     }
 }

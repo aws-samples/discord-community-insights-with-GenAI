@@ -197,6 +197,42 @@ export class GlueStack extends NestedStack {
             })
         )
 
+
+        // AppStore Job
+        const appstoreScriptPath = path.resolve(__dirname, '../resources/glue-job-code/appsotre-comments-analysis.py');
+
+        const appstoreJob = new glue.Job(this, 'appstore-job',{
+            jobName: DeployConstant.GLUE_APPSTORE_JOB_NAME,
+            executable: glue.JobExecutable.pythonEtl({
+                glueVersion: glue.GlueVersion.V4_0,
+                pythonVersion: glue.PythonVersion.THREE,
+                script: glue.Code.fromAsset(appstoreScriptPath),
+            }),
+            maxConcurrentRuns:200,
+            maxRetries:0,
+            defaultArguments:{
+                '--BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                '--GLUE_DATABASE': DeployConstant.GLUE_DATABASE,
+                '--GLUE_TABLE': DeployConstant.GLUE_TABLE,
+                '--RAW_DATA_PREFIX': DeployConstant.RAW_DATA_PREFIX,
+                '--PROMPT_TEMPLATE_TABLE': DeployConstant.LLM_ANALYSIS_TEXT_TABLE_NAME,
+                '--USER_JOBS_TABLE': DeployConstant.DDB_USER_JOBS_TABLE,
+                '--additional-python-modules': 'langchain-aws==0.1.6,langchain-community==0.2.4,awswrangler==3.8.0,requests==2.32.3,bs4==0.0.2,google-play-scraper==1.2.7,tiktoken==0.7.0'
+            }
+        })
+        appstoreJob.role.addToPrincipalPolicy(
+            new iam.PolicyStatement({
+                actions: [
+                    "s3:*",
+                    "athena:*",
+                    "dynamodb:*",
+                    "bedrock:*",
+                ],
+                effect: iam.Effect.ALLOW,
+                resources: ['*'],
+            })
+        )
+
     }
 
 }

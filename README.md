@@ -119,6 +119,42 @@ cdk deploy
 
 等待几分钟后，方案部署完毕，会有以下输出内容，当然我们也可以在 AWS console 中 CloudFormation 中查看
 
+### Glue Table 创建
+```
+CREATE EXTERNAL TABLE sentiment_result (
+    chat STRING,
+    sentiment STRING
+)
+PARTITIONED BY (
+  job_id STRING
+)
+ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
+WITH SERDEPROPERTIES ('ignore.malformed.json' = 'true')
+LOCATION "s3://<替换上面配置的S3 Bucket名称>/result/"
+TBLPROPERTIES (
+  "projection.enabled" = "true",
+  "projection.job_id.type" = "injected",
+  "storage.location.template" = "s3://<替换上面配置的S3 Bucket名称>/result/job_id=${job_id}"
+)
+```
+
+```
+CREATE EXTERNAL TABLE summary_result (
+    counts STRING,
+    summary STRING
+)
+PARTITIONED BY (
+  job_id STRING
+)
+ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
+WITH SERDEPROPERTIES ('ignore.malformed.json' = 'true')
+LOCATION "s3://<替换上面配置的S3 Bucket名称>/summary/"
+TBLPROPERTIES (
+  "projection.enabled" = "true",
+  "projection.job_id.type" = "injected",
+  "storage.location.template" = "s3://<替换上面配置的S3 Bucket名称>/summary/job_id=${job_id}"
+```
+
 ### 示例应用程序
 #### 启动
 ```shell

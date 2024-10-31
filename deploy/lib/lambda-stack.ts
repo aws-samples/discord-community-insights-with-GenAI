@@ -25,6 +25,10 @@ export class LambdaStack extends NestedStack {
     public readonly getDiscord1ClickJobFunction: lambda.IFunction;
     public readonly startDiscord1ClickJobFunction: lambda.IFunction;
     public readonly getUserJobsFunction: lambda.IFunction;
+    public readonly webhookSettingsFunction: lambda.IFunction;
+    public readonly categorySettingsFunction: lambda.IFunction;
+    public readonly userJobsFunction: lambda.IFunction;
+    public readonly getAppStoreSummaryResultsFunction: lambda.IFunction;
 
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
@@ -66,6 +70,15 @@ export class LambdaStack extends NestedStack {
             ],
         });
 
+        const webhookSettingsLambdaRole = new iam.Role(this, 'WebhookSettingsLambdaRole', {
+            roleName: `webhook-settings-lambda--${cdk.Stack.of(this).region}`,
+            assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+            managedPolicies: [
+                iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchFullAccess'),
+                iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonDynamoDBFullAccess'),
+            ],
+        });
+
         const functionSettings : lambdanodejs.NodejsFunctionProps = {
             handler: 'handler',
             runtime: lambda.Runtime.NODEJS_LATEST,
@@ -84,6 +97,16 @@ export class LambdaStack extends NestedStack {
                 'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
                 'RAW_DATA_PREFIX': DeployConstant.RAW_DATA_PREFIX,
                 'PROMPT_TEMPLATE_TABLE': DeployConstant.LLM_ANALYSIS_TEXT_TABLE_NAME,
+            },
+            ...functionSettings
+        });
+
+        this.webhookSettingsFunction = new lambdanodejs.NodejsFunction(this, 'WebhookSettingsFunction', {
+            functionName: 'webhook-settings-func',
+            entry: './resources/lambda/webhook-settings-function.ts',
+            role: webhookSettingsLambdaRole,
+            environment: {
+                'TABLE_NAME': DeployConstant.DDB_WEBHOOK_SETTINGS_TABLE,
             },
             ...functionSettings
         });
@@ -158,6 +181,19 @@ export class LambdaStack extends NestedStack {
             ...functionSettings
         });
 
+        this.getAppStoreSummaryResultsFunction = new lambdanodejs.NodejsFunction(this, 'GetAppstoreSummaryResultsFunc', {
+            functionName: 'get-appstore-summary-results-func',
+            entry: './resources/lambda/summary-job-results.ts',
+            role: glueJobLambdaRole,
+            timeout: Duration.minutes(100),
+            environment: {
+                'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
+                'TABLE_NAME': DeployConstant.GLUE_APPSTORE_SUMMARY_TABLE,
+                'DATABASE_NAME': DeployConstant.GLUE_DATABASE,
+            },
+            ...functionSettings
+        });
+
         this.getSummaryJobsFunction = new lambdanodejs.NodejsFunction(this, 'GetSummaryJobsFunction', {
             functionName: 'get-summary-jobs-func',
             entry: './resources/lambda/get-summary-job-list.ts',
@@ -221,6 +257,28 @@ export class LambdaStack extends NestedStack {
                 'BUCKET_NAME': DeployConstant.S3_BUCKET_NAME,
                 'USER_JOBS_TABLE_NAME': DeployConstant.USER_JOBS_TABLE,
                 'DATABASE_NAME': DeployConstant.GLUE_DATABASE,
+            },
+            ...functionSettings
+        });
+
+        this.categorySettingsFunction = new lambdanodejs.NodejsFunction(this, 'CategorySettingsFunction', {
+            functionName: 'category-settings--func',
+            entry: './resources/lambda/category-settings-function.ts',
+            role: webhookSettingsLambdaRole,
+            timeout: Duration.minutes(10),
+            environment: {
+                'TABLE_NAME': DeployConstant.DDB_CATEGORY_SETTINGS_TABLE,
+            },
+            ...functionSettings
+        });
+
+        this.userJobsFunction = new lambdanodejs.NodejsFunction(this, 'UserJobsFunction', {
+            functionName: 'user-jobs--func',
+            entry: './resources/lambda/user-jobs-function.ts',
+            role: webhookSettingsLambdaRole,
+            timeout: Duration.minutes(10),
+            environment: {
+                'TABLE_NAME': DeployConstant.DDB_USER_JOBS_TABLE,
             },
             ...functionSettings
         });

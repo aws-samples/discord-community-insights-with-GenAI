@@ -22,8 +22,13 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
   {context}
   </doc>
 
-  Here is a task:
-  First, find the quotes from the document that are most relevant to {topic}, and then print them in numbered order. Quotes should be relatively short.
+  Here is a category list you will classify:
+  <categories>
+  {categories}
+  </categories>
+
+  Below is your task:
+  First, find the quotes from the document in <doc> that are most relevant to categories in <categories>, and then print them in numbered order and attach corresponding category. Quotes should be relatively short.
   If there are no relevant quotes, write "No relevant quotes" instead.
   please enclose your analysis results in xml tag <response>.
 
@@ -35,23 +40,17 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
   Skip the preamble, go straight into the answer.
   '''
   prompt_sentiment_sample = '''
-  You are a chat message sentiment classifer
-
-  Here is a document you will classify the senetiment
+  You are a chat message sentiment classifer,Here is a document you will classify the senetiment
   <doc>
-  {relevant_info}
+  {context}
   </doc>
-  please list all the content if it is relevant to {topic} and classify the sentiment of each content into [positive,neutral,negative]'
-  Please follow below requirements:
+  please list all the content if it is relevant to {category} and classify the sentiment of each content into [positive,neutral,negative], then summary the chat content.
+  Please follow below steps:
   1. You will strictly be based on the document in <doc>.
-  2. please enclose your analysis results in xml tag <sentiment>.
-
-  for example:
-  <sentiment>
-  $SAMPLE$
-  </sentiment>
-
+  2. Classify the sentiment of each content into [positive,neutral,negative].
+  3. Then summary the chat content by sentiment, the summary output to <summary>.
   Skip the preamble, go straight into the answer.
+  <summary>
   '''
 
   def few_shot_callback():
@@ -65,11 +64,31 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
       st.session_state.prompt_rag = prompt_rag_sample.replace('$SAMPLE$', '\n'.join(processed_texts))
 
 
-
-  topic = st.text_input(
-      "Enter Topic👇 (required)",
-      placeholder="input topic name,like '拍卖行'",
+  def getAllCategories():
+      url = domain_url + "/categories"
+      headers = {
+       'x-api-key': api_key,
+        'Content-Type': 'application/json'
+      }
+      response = requests.request("GET", url, headers=headers).json()
+      print('GET:',response)
+      return response
+  
+  name = st.text_input(
+      "Enter Name👇 (required)",
+      key="name",
+      placeholder="Prompt Name",
+      # value=prompt_rag_sample,
   )
+
+  allCategories = getAllCategories()
+  categories = [data['name'] for data in allCategories]
+  selected_category_index = st.selectbox("Select Categories", categories)
+
+  try:
+    selected_category = next(data for data in allCategories if data['name'] == selected_category_index)
+  except StopIteration:
+    selected_category = None
 
   prompt_rag = st.text_area(
       "Enter Prompt Rag👇 (required)",
@@ -90,8 +109,7 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
   sample_text = st.text_area(
       "Enter Samples👇 (optional)",
       placeholder=
-      """
-      1. "拍卖行多香" [positive]
+      """1. "拍卖行多香" [positive]
       2. "我拍到好东西了" [positive]
       3. "拍卖行太差劲了" [negative]
       4. "auction sucks" [negative]
@@ -101,8 +119,9 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
   )
 
   if st.button('提交'):
-      if topic.strip() == "":
-          st.write("Topic cannot be empty！")
+
+      if name.strip() == "":
+          st.write("Name cannot be empty！")
 
       if prompt_rag.strip() == "":
           st.write("Prompt RAG cannot be empty！")
@@ -116,13 +135,20 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
         'x-api-key': api_key,
         'Content-Type': 'application/json'
       }
-      response = json.loads(requests.request("GET", url, headers=headers).text)
+      response = requests.request("GET", url, headers=headers).json()
       print('GET:',response)
-      payload = json.dumps({
-        "topic": topic,
+      
+      payload_dict = {
+        "name": name,
         "prompt_rag": prompt_rag,
         "prompt_sentiment": prompt_sentiment
-      })
+      }
+
+      if selected_category is not None:
+         payload_dict['categories'] = selected_category['categories']
+
+      payload = json.dumps(payload_dict)
+
       headers = {
         'x-api-key': api_key,
         'Content-Type': 'application/json'
@@ -134,85 +160,5 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
           st.success('Submit success!', icon="✅")
       else:
           st.error(f'Submit failed with code:{response.status_code} message:{response.content}')
-
-
-  st.markdown("### 提示词样例如下，其中{context} , {relevant_info} 和 {topic}请不要动")
-  st.markdown("### Prompt RAG")
-  code = '''
-  You are an expert research assistant, tasked with identifying player sentiments regarding certain in-game items, neutral NPCs, and game market activities.
-
-  Here is a document you will analyze
-  <doc>
-  {context}
-  </doc>
-
-  Here is a task:
-  First, find the quotes from the document that are most relevant to {topic}, and then print them in numbered order. Quotes should be relatively short.
-  If there are no relevant quotes, write "No relevant quotes" instead.
-  please enclose your analysis results in xml tag <response>.
-
-  for example:
-  <response>
-  1. "拍卖行多香"
-  2. "我拍到好东西了"
-  3. "拍卖行太差劲了"
-  4. "auction sucks"
-  5. "拍卖行有人发包"
-  </response>
-
-  Skip the preamble, go straight into the answer.
-  '''
-  st.code(code, language='python')
-  st.markdown("### Prompt Sentiment")
-  code = '''
-  You are a chat message sentiment classifer
-
-  Here is a document you will classify the senetiment
-  <doc>
-  {relevant_info}
-  </doc>
-  please list all the content if it is relevant to {topic} and classify the sentiment of each content into [positive,neutral,negative]'
-  Please follow below requirements:
-  1. You will strictly be based on the document in <doc>.
-  2. please enclose your analysis results in xml tag <sentiment>.
-
-  for example:
-  <sentiment>
-  1. "拍卖行多香" [positive]
-  2. "我拍到好东西了" [positive]
-  3. "拍卖行太差劲了" [negative]
-  4. "auction sucks" [negative]
-  5. "拍卖行有人发包" [neutral]
-  </sentiment>
-
-  Skip the preamble, go straight into the answer.
-  '''
-  st.code(code, language='python')
-
-
-
-  st.markdown("示例代码如下：")
-  code = '''
-  url = domain_url + "/prompts"
-
-  headers = {
-    'x-api-key': api_key,
-    'Content-Type': 'application/json'
-  }
-  response = json.loads(requests.request("GET", url, headers=headers).text)
-
-  payload = json.dumps({
-    "topic": topic,
-    "prompt_rag": prompt_rag,
-    "prompt_sentiment": prompt_sentiment
-  })
-  headers = {
-    'x-api-key': api_key,
-    'Content-Type': 'application/json'
-  }
-
-  response = requests.request("POST", url, headers=headers, data=payload)
-  '''
-  st.code(code, language='python')
 else:
    st.error("please login first")

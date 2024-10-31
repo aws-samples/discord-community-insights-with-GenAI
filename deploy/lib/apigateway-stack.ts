@@ -19,6 +19,10 @@ export interface APIGatewayProps extends NestedStackProps {
     discordSettingsFunction: lambda.IFunction,
     getDiscord1ClickJobFunction: lambda.IFunction,
     getUserJobsFunction: lambda.IFunction,
+    webhookSettingsFunction: lambda.IFunction,
+    categorySettingsFunction: lambda.IFunction,
+    userJobsFunction: lambda.IFunction,
+    getAppStoreSummaryResultsFunction: lambda.IFunction,
 }
 
 export class ApigatewayStack extends NestedStack {
@@ -73,6 +77,13 @@ export class ApigatewayStack extends NestedStack {
             }
         });
 
+        const appstoreSummarizeJobRootPath = llmTextAnalysisAPI.root.addResource('appstore-summarize-jobs', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+
+
         chatDataRootPath.addMethod('GET', new _apigateway.LambdaIntegration(props.getRawDataDirectoriesFunction));
 
         jobsRootPath.addMethod('POST', new _apigateway.LambdaIntegration(props.startLLMAnalysisJobLambda));
@@ -94,6 +105,15 @@ export class ApigatewayStack extends NestedStack {
             }
         });
         singleSummarizeJobPath.addMethod("GET", new _apigateway.LambdaIntegration(props.getSummaryResultsFunction))
+        
+
+        const singleAppstoreSummarizeJobPath = appstoreSummarizeJobRootPath.addResource('{id}', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+        singleAppstoreSummarizeJobPath.addMethod("GET", new _apigateway.LambdaIntegration(props.getAppStoreSummaryResultsFunction))
+
 
         const resultsPath = jobsRootPath.addResource("results", {
             defaultMethodOptions: {
@@ -158,6 +178,32 @@ export class ApigatewayStack extends NestedStack {
                 'method.request.querystring.body': true
             }
         })
+
+        const webhookSettingsRootPath = llmTextAnalysisAPI.root.addResource('webhooks', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+        webhookSettingsRootPath.addMethod("GET", new _apigateway.LambdaIntegration(props.webhookSettingsFunction))
+        webhookSettingsRootPath.addMethod("POST", new _apigateway.LambdaIntegration(props.webhookSettingsFunction))
+
+        const categorySettingsRootPath = llmTextAnalysisAPI.root.addResource('categories', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+        categorySettingsRootPath.addMethod("GET", new _apigateway.LambdaIntegration(props.categorySettingsFunction))
+        categorySettingsRootPath.addMethod("POST", new _apigateway.LambdaIntegration(props.categorySettingsFunction))
+
+
+        const userJobsRootPath = llmTextAnalysisAPI.root.addResource('myjobs', {
+            defaultMethodOptions: {
+                apiKeyRequired: true
+            }
+        });
+        userJobsRootPath.addMethod("GET", new _apigateway.LambdaIntegration(props.userJobsFunction))
+        userJobsRootPath.addMethod("POST", new _apigateway.LambdaIntegration(props.userJobsFunction))
+
 
         const usagePlan = llmTextAnalysisAPI.addUsagePlan('TestAPIKeyUsagePlan', {
             name: 'Test-GLWorkshop-UsagePlan',

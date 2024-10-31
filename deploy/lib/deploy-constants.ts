@@ -10,6 +10,8 @@ export class DeployConstant {
 
     public static readonly GLUE_DISCORD_1CLICK_JOB_NAME = 'discord-1click-job'
 
+    public static readonly GLUE_APPSTORE_JOB_NAME = 'appstore-job'
+
     public static readonly LLM_ANALYSIS_TEXT_TABLE_NAME = process.env.LLM_ANALYSIS_TEXT_TABLE_NAME ??''
 
     public static readonly DISCORD_SECRET_NAME = process.env.DISCORD_SECRET_NAME ??''
@@ -32,7 +34,15 @@ export class DeployConstant {
     
     public static readonly GLUE_SUMMARY_TABLE = process.env.GLUE_SUMMARY_TABLE??''
 
+    public static readonly GLUE_APPSTORE_SUMMARY_TABLE = 'appstore_summary_result'
+
     public static readonly USER_JOBS_TABLE = 'user_jobs'
+
+    public static readonly DDB_WEBHOOK_SETTINGS_TABLE = process.env.DDB_WEBHOOK_SETTINGS_TABLE??'webhook-settings'
+
+    public static readonly DDB_CATEGORY_SETTINGS_TABLE = process.env.DDB_CATEGORY_SETTINGS_TABLE??'category-settings'
+
+    public static readonly DDB_USER_JOBS_TABLE = process.env.DDB_USER_JOBS_TABLE??'user-jobs'
 
     private constructor() {}
 }
