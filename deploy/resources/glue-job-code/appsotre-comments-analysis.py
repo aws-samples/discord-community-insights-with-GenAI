@@ -27,19 +27,17 @@ print("---------------Starting Analysis-----------------")
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 # 接收参数
-args = getResolvedOptions(sys.argv, ['BUCKET_NAME', 'RAW_DATA_PREFIX', 'PROMPT_TEMPLATE_TABLE','USER_JOBS_TABLE'])
+args = getResolvedOptions(sys.argv, ['BUCKET_NAME', 'RAW_DATA_PREFIX', 'PROMPT_TEMPLATE_TABLE','USER_JOBS_TABLE', 'USER_JOB_ID'])
 print("------------------Default Job Run ID:", args)
 job_run_id = args['JOB_RUN_ID']
 
-user_job_id = '87fc65ba-4563-4eb5-90ab-d80eb71410df'
+user_job_id = args['USER_JOB_ID']
 
 bucket_name = args['BUCKET_NAME']
 prefix = args['RAW_DATA_PREFIX']
 prompt_table_name = args['PROMPT_TEMPLATE_TABLE']
 user_jobs_table_name = args['USER_JOBS_TABLE']
 result_prefix = 'result/'
-now = datetime.now()
-formatted_time = now.strftime("%Y-%m-%d-%H-%M-%S")
 
 s3 = boto3.client('s3')
 dynamodb = boto3.client('dynamodb')
@@ -216,6 +214,7 @@ glue_db = 'llm_text_db'
 glue_table = 'category_result'
 category_list = categories.split(",")
 
+ss_result = []
 for cate in category_list:
 
     # 读取数据并应用过滤条件
@@ -255,3 +254,5 @@ for cate in category_list:
     )
     result = chain.invoke({"input_documents": docs}, return_only_outputs=True)
     print(result["output_text"])
+    ss_result.append(json.dumps({'category': cate, 'summary': result["output_text"]}))
+save_review_data(app_name,"summary", "summary.json",ss_result);

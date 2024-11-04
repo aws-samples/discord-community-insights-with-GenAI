@@ -3,8 +3,12 @@ const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
 const crypto = require('crypto');
 const tableName = process.env.TABLE_NAME;
 const pageSize = 20;
+import { EventBridgeClient, PutRuleCommand, PutTargetsCommand } from "@aws-sdk/client-eventbridge";
 
 const ddbClient = new DynamoDBClient();
+const ebclient = new EventBridgeClient({});
+const START_APPSTORE_REVIEW_JOB_FUNC = process.env.START_APPSTORE_REVIEW_JOB_FUNC;
+const RULE_PREFIX = 'appstore-rule-'
 
 exports.handler = async (event) => {
     console.log(event);
@@ -94,6 +98,29 @@ async function putDynamoDBData(event) {
     };
 
     await ddbClient.send(new PutItemCommand(params));
+
+    // 为当前用户创建EventBridge Schedule
+    const ruleName = RULE_PREFIX + item.name + new Date().getTime();
+    const input = { // PutRuleRequest
+        Name: ruleName, // required
+        ScheduleExpression: item.crons,
+        State: "ENABLED",
+        Description: 'Rule For : ' + item.name,
+    };
+    const putRuleCommand = new PutRuleCommand(input);
+    const ebresponse = await ebclient.send(putRuleCommand);
+    console.log(ebresponse)
+
+    //为EventBridge Rule绑定Lambda
+    const putTargetsCommand = new PutTargetsCommand({
+        Rule: ruleName,
+        Targets: [{ Id: 'LambdaTarget' + item.id, Arn: START_APPSTORE_REVIEW_JOB_FUNC, Input: JSON.stringify({user_job_id: item.id}) }]
+    })
+    const response = await ebclient.send(putTargetsCommand);
+    console.log(response);
+    console.log(`Target added to rule ${ruleName} successfully`);
+
+
     return buildResponse(200, '{"message": "Item added"}');
 }
 

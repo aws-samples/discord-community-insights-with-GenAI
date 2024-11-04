@@ -29,6 +29,8 @@ export class LambdaStack extends NestedStack {
     public readonly categorySettingsFunction: lambda.IFunction;
     public readonly userJobsFunction: lambda.IFunction;
     public readonly getAppStoreSummaryResultsFunction: lambda.IFunction;
+    public readonly satrtAppstoreReviewsJobFunc: lambda.IFunction;
+    
 
     constructor(scope: Construct, id: string, props: LambdaStackProps) {
         super(scope, id, props);
@@ -76,6 +78,7 @@ export class LambdaStack extends NestedStack {
             managedPolicies: [
                 iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchFullAccess'),
                 iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonDynamoDBFullAccess'),
+                iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonEventBridgeFullAccess'),
             ],
         });
 
@@ -272,6 +275,23 @@ export class LambdaStack extends NestedStack {
             ...functionSettings
         });
 
+        this.satrtAppstoreReviewsJobFunc = new lambdanodejs.NodejsFunction(this, 'SatrtAppstoreReviewsJobFunc', {
+            functionName: 'satrt-Appstore-Reviews-Job-Func',
+            entry: './resources/lambda/start-appstore-reviews-job.ts',
+            role: glueJobLambdaRole,
+            timeout: Duration.minutes(30),
+            environment: {
+                'GLUE_APPSTORE_JOB_NAME': DeployConstant.GLUE_APPSTORE_JOB_NAME,
+            },
+            ...functionSettings
+        });
+
+        this.satrtAppstoreReviewsJobFunc.addPermission('AllowEventBridgeInvocation', {
+            principal: new iam.ServicePrincipal('events.amazonaws.com'),
+            action: 'lambda:InvokeFunction',
+            sourceArn: `arn:aws:events:${this.region}:${this.account}:rule/*`, // Replace with your EventBridge rule ARN
+        });
+
         this.userJobsFunction = new lambdanodejs.NodejsFunction(this, 'UserJobsFunction', {
             functionName: 'user-jobs--func',
             entry: './resources/lambda/user-jobs-function.ts',
@@ -279,6 +299,7 @@ export class LambdaStack extends NestedStack {
             timeout: Duration.minutes(10),
             environment: {
                 'TABLE_NAME': DeployConstant.DDB_USER_JOBS_TABLE,
+                'START_APPSTORE_REVIEW_JOB_FUNC': this.satrtAppstoreReviewsJobFunc.functionArn,
             },
             ...functionSettings
         });
