@@ -24,9 +24,21 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
       print('GET:',response)
       return response
   
+  def getAllWebhooks():
+      url = domain_url + "/webhooks"
+      headers = {
+       'x-api-key': api_key,
+        'Content-Type': 'application/json'
+      }
+      response = requests.request("GET", url, headers=headers).json()
+      print('GET:',response)
+      return response
+  webhooks = getAllWebhooks()
   prompts = getAllPrompts()
   names = [data['name'] for data in prompts]
   print(names)
+  webhook_names = [data['name'] for data in webhooks]
+
   selected_name_index = st.selectbox("=======>选择提示词<=======", names)
 
   appStores = ['Google Play','App Store']
@@ -49,17 +61,24 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
       # value=prompt_rag_sample,
   )
 
-
   crons = st.text_input(
       "Enter Crons👇 (required)",
       key="crons",
-      placeholder="crons",
+      placeholder="Like: cron(24 05 * * ? *)",
       # value=prompt_rag_sample,
   )
+
+  selected_webhook_name_index = st.selectbox("=======>选择发送渠道<=======", webhook_names)
+  
   try:
     selected_name = next(data for data in prompts if data['name'] == selected_name_index)
   except StopIteration:
     selected_name = None
+  
+  try:
+    selected_webhook_name = next(data for data in webhooks if data['name'] == selected_webhook_name_index)
+  except StopIteration:
+    selected_webhook_name = None
 
 
   if st.button('提交'):
@@ -77,6 +96,7 @@ if 'authentication_status' in st.session_state and st.session_state["authenticat
         "app_name": app_name,
         "store_name": selected_store_index,
         "country_name": selected_country_index,
+        "webhook_id": selected_webhook_name['id'],
         "name": name
       }
       payload = json.dumps(payload_dict)
