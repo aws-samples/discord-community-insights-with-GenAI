@@ -9,6 +9,10 @@ from bs4 import BeautifulSoup
 import re
 from datetime import datetime, timedelta
 import time
+import hashlib
+import hmac
+import requests
+import base64
 from google_play_scraper import search, Sort, reviews
 from botocore.exceptions import ClientError
 from langchain_aws import ChatBedrock
@@ -27,7 +31,7 @@ print("---------------Starting Analysis-----------------")
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 # 接收参数
-args = getResolvedOptions(sys.argv, ['BUCKET_NAME', 'RAW_DATA_PREFIX', 'PROMPT_TEMPLATE_TABLE','USER_JOBS_TABLE', 'USER_JOB_ID'])
+args = getResolvedOptions(sys.argv, ['BUCKET_NAME', 'RAW_DATA_PREFIX', 'PROMPT_TEMPLATE_TABLE','USER_JOBS_TABLE', 'USER_JOB_ID', 'DDB_WEBHOOK_SETTINGS_TABLE'])
 print("------------------Default Job Run ID:", args)
 job_run_id = args['JOB_RUN_ID']
 
@@ -36,6 +40,7 @@ user_job_id = args['USER_JOB_ID']
 bucket_name = args['BUCKET_NAME']
 prefix = args['RAW_DATA_PREFIX']
 prompt_table_name = args['PROMPT_TEMPLATE_TABLE']
+webhook_table_name = args['DDB_WEBHOOK_SETTINGS_TABLE']
 user_jobs_table_name = args['USER_JOBS_TABLE']
 result_prefix = 'result/'
 
@@ -60,6 +65,7 @@ app_name = job_info['Items'][0]['app_name']['S']
 store_name = job_info['Items'][0]['store_name']['S']
 country_name = job_info['Items'][0]['country_name']['S']
 prompt_id = job_info['Items'][0]['prompt_id']['S']
+webhook_id = job_info['Items'][0]['webhook_id']['S']
 
 # Get prompt info
 partition_key_name = 'id'
@@ -85,6 +91,24 @@ print('categories:',categories)
 print('prompt_rag:',prompt_rag)
 print('prompt_sentiment:',prompt_sentiment)
 
+# 查询Webhook信息
+webhook_partition_key_name = 'id'
+webhook_partition_key_value = webhook_id
+
+webhook_response = dynamodb.query(
+    TableName=webhook_table_name,
+    KeyConditionExpression=f'{webhook_partition_key_name} = :val',
+    ExpressionAttributeValues={
+        ':val': {'S': webhook_partition_key_value}
+    }
+)
+
+if len(webhook_response['Items']) == 0:
+    print("************Wrong Webhook ID**************:",webhook_id)
+else:
+    webhook_url = webhook_response['Items'][0]['url']['S']
+    webhook_secret = webhook_response['Items'][0]['secret']['S']
+
 class CustOuputParser(BaseOutputParser[str]):
     
     def extract(self, content: str) -> tuple[str, str]:
@@ -106,6 +130,43 @@ class CustOuputParser(BaseOutputParser[str]):
     @property
     def _type(self) -> str:
         return "cust_output_parser"
+
+class FeiShu():
+    webhook_url = ''
+    secret = ''
+    def __init__(self,webhook_url,secret):
+        self.webhook_url = webhook_url
+        self.secret = secret
+    
+    def gen_sign(self, secret, timestamp):# 拼接时间戳以及签名校验
+        
+        string_to_sign = '{}\n{}'.format(timestamp, secret)
+        # 使用 HMAC-SHA256 进行加密
+        hmac_code = hmac.new(
+            string_to_sign.encode("utf-8"), digestmod=hashlib.sha256
+        ).digest()
+        # 对结果进行 base64 编码
+        sign = base64.b64encode(hmac_code).decode('utf-8')
+        return sign
+    
+    def send_message(self, text):
+        timestamp = int(datetime.now().timestamp())
+        sign = self.gen_sign(self.secret, timestamp)
+        params = {
+            "timestamp": timestamp,
+            "sign": sign,
+            "msg_type": "text",
+            "content": {"text": text},
+        }
+
+        resp = requests.post(self.webhook_url, json=params)
+        resp.raise_for_status()
+        result = resp.json()
+        if result.get("code") and result.get("code") != 0:
+            print(f"发送失败：{result['msg']}")
+            return
+        print("消息发送成功")
+
 
 # get google appid before get app reviews.
 def get_google_app_id(app_name:str):
@@ -192,11 +253,12 @@ else:
     print(f"not support for current store {store_name}")
 
 prompt_rag = ChatPromptTemplate.from_template(prompt_rag)
-llm_sonnet = ChatBedrock(model_id="anthropic.claude-3-sonnet-20240229-v1:0",
+llm_sonnet = ChatBedrock(model_id="anthropic.claude-3-5-sonnet-20241022-v2:0",
                   model_kwargs={"temperature": 0,
                                 "top_k":10,
                                 "max_tokens": 1024,
-                                "top_p":0.5,
+                                "system": "You must always output response in Chinese",
+                                "top_p":0.1,
                                 # "stop_sequences":['</response>']
                                })
 output_parser  = CustOuputParser()
@@ -214,6 +276,8 @@ glue_db = 'llm_text_db'
 glue_table = 'category_result'
 category_list = categories.split(",")
 
+# 初始化飞书实例
+message_channel = FeiShu(webhook_url=webhook_url, secret=webhook_secret)
 ss_result = []
 for cate in category_list:
 
@@ -255,4 +319,5 @@ for cate in category_list:
     result = chain.invoke({"input_documents": docs}, return_only_outputs=True)
     print(result["output_text"])
     ss_result.append(json.dumps({'category': cate, 'summary': result["output_text"]}))
+    message_channel.send_message(result["output_text"])
 save_review_data(app_name,"summary", "summary.json",ss_result);

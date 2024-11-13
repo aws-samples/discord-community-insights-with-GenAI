@@ -1,25 +1,44 @@
-import numpy as np
-import boto3
-import json
-import logging
-import sys
-import pandas as pd
-import requests
-from bs4 import BeautifulSoup
-import re
-from datetime import datetime, timedelta
-import time
-from google_play_scraper import search, Sort, reviews
-from botocore.exceptions import ClientError
-from langchain_aws import ChatBedrock
-from langchain_core.messages import HumanMessage,AIMessage
+#!/usr/bin/env python3# coding:utf-8# feishu.pyimport base64
+import hashlib
+import hmac
+from datetime import datetime
+import base64
 
-result, continuation_token = reviews(
-            'com.nianticlabs.pokemongo',
-            lang='en', # defaults to 'en'
-            country="us" , # defaults to 'us'
-            sort=Sort.NEWEST, # defaults to Sort.NEWEST
-            count=100, # defaults to 100
-            filter_score_with= 5
-        )
-print(result)
+import requests
+
+WEBHOOK_URL = "https://open.feishu.cn/open-apis/bot/v2/hook/aa8867b0-a0a4-4704-b18c-e7eea05418c7"
+WEBHOOK_SECRET = "IZfPccQJ3PxWDB4I6zN3ke"
+timestamp = int(datetime.now().timestamp())
+
+def gen_sign(secret):# 拼接时间戳以及签名校验
+    string_to_sign = '{}\n{}'.format(timestamp, secret)
+
+    # 使用 HMAC-SHA256 进行加密
+    hmac_code = hmac.new(
+        string_to_sign.encode("utf-8"), digestmod=hashlib.sha256
+    ).digest()
+
+    # 对结果进行 base64 编码
+    sign = base64.b64encode(hmac_code).decode('utf-8')
+
+    return sign
+
+def main():
+    sign = gen_sign(WEBHOOK_SECRET)
+    params = {
+        "timestamp": timestamp,
+        "sign": sign,
+        "msg_type": "text",
+        "content": {"text": "点火发射！"},
+    }
+
+    resp = requests.post(WEBHOOK_URL, json=params)
+    resp.raise_for_status()
+    result = resp.json()
+    if result.get("code") and result.get("code") != 0:
+        print(f"发送失败：{result['msg']}")
+        return
+    print("消息发送成功")
+
+if __name__ == '__main__':
+    main()
