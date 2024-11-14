@@ -29,7 +29,7 @@ DDB_WEBHOOK_SETTINGS_TABLE="webhook-settings"
 # Category Settings DDB表名
 DDB_CATEGORY_SETTINGS_TABLE="category-settings"
 # User Jobs DDB表名
-DDB_CATEGORY_SETTINGS_TABLE="user-jobs"
+DDB_USER_JOBS_TABLE="user-jobs"
 
 echo "GLUE_JOB_NAME=${GLUE_JOB_NAME}" >> .env
 echo "GLUE_DISCORD_JOB_NAME=${GLUE_DISCORD_JOB_NAME}" >> .env

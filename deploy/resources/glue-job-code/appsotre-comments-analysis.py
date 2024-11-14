@@ -319,5 +319,6 @@ for cate in category_list:
     result = chain.invoke({"input_documents": docs}, return_only_outputs=True)
     print(result["output_text"])
     ss_result.append(json.dumps({'category': cate, 'summary': result["output_text"]}))
-    message_channel.send_message(result["output_text"])
+    message = f"分类: {cate} 总结如下: \n {result['output_text']}"
+    message_channel.send_message(message)
 save_review_data(app_name,"summary", "summary.json",ss_result);
