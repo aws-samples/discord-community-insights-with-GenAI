@@ -218,7 +218,7 @@ export class GlueStack extends NestedStack {
                 '--PROMPT_TEMPLATE_TABLE': DeployConstant.LLM_ANALYSIS_TEXT_TABLE_NAME,
                 '--DDB_WEBHOOK_SETTINGS_TABLE': DeployConstant.DDB_WEBHOOK_SETTINGS_TABLE,
                 '--USER_JOBS_TABLE': DeployConstant.DDB_USER_JOBS_TABLE,
-                '--additional-python-modules': 'langchain-aws==0.1.6,langchain-community==0.2.4,awswrangler==3.8.0,requests==2.32.3,bs4==0.0.2,google-play-scraper==1.2.7,tiktoken==0.7.0'
+                '--additional-python-modules': 'langchain-aws==0.1.6,langchain-community==0.2.4,awswrangler==3.8.0,requests==2.31.0,bs4==0.0.2,google-play-scraper==1.2.7,tiktoken==0.7.0,app-store-scraper@git+https://github.com/stevensu1977/app-store-scraper.git'
             }
         })
         appstoreJob.role.addToPrincipalPolicy(

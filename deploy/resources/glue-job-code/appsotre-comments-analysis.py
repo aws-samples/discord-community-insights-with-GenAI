@@ -14,6 +14,7 @@ import hmac
 import requests
 import base64
 from google_play_scraper import search, Sort, reviews
+from app_store_scraper import AppStore
 from botocore.exceptions import ClientError
 from langchain_aws import ChatBedrock
 from langchain_core.messages import HumanMessage,AIMessage
@@ -219,14 +220,17 @@ def get_google_play_app_review(app_id:str,country:str,rank:int = -1,page:int=1 )
         
         if continuation_token:
             print(f'Have continuation token: {continuation_token}')
-
-        # if len(result) > 0:
-        #     process_app_review_with_llm(result)
-        # save_review(app_id, result)
-        # with open(f"output/{app_id}.json", "w", encoding="utf-8") as file:
-        #     json.dump(result, file, cls=DateTimeEncoder,ensure_ascii=False, indent=4)
-
         return [{"username":review["userName"],"content":review["content"],"score":review["score"]} for review in result]
+    except Exception as e:
+        print(e)
+        return []
+
+def get_apple_app_review(app_name:str, country:str, rank:int = -1,page:int=1):
+    """Tool to found Apple App Store App reviews by app name ,country ,rank and page"""
+    try:
+        app = AppStore(country=country, app_name=app_name)
+        app.review(how_many=100)
+        return app.reviews
     except Exception as e:
         print(e)
         return []
@@ -249,11 +253,15 @@ if store_name == 'Google Play':
         app_name = app_name_arr[0]
         print(f"app_name is {app_name} in {store_name}")
         raw_reviews = get_google_play_app_review(app_name['appId'],'us')
+elif store_name == 'App Store':
+    raw_reviews = get_apple_app_review(app_name, country_name)
+    print(f'=========current app name: {app_name} on apple store reviews :==========')
+    print(raw_reviews)
 else:
     print(f"not support for current store {store_name}")
 
 prompt_rag = ChatPromptTemplate.from_template(prompt_rag)
-llm_sonnet = ChatBedrock(model_id="anthropic.claude-3-5-sonnet-20241022-v2:0",
+llm_sonnet = ChatBedrock(model_id="anthropic.claude-3-sonnet-20240229-v1:0",
                   model_kwargs={"temperature": 0,
                                 "top_k":10,
                                 "max_tokens": 1024,
