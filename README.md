@@ -90,6 +90,13 @@ GLUE_DATABASE="llm_text_db"
 GLUE_TABLE="sentiment_result"
 # Glue Catalog中查询S3中总结数据使用表名
 GLUE_SUMMARY_TABLE="summary_result"
+# Webhook Settings DDB表名
+DDB_WEBHOOK_SETTINGS_TABLE="webhook-settings"
+# Category Settings DDB表名
+DDB_CATEGORY_SETTINGS_TABLE="category-settings"
+# User Jobs DDB表名
+DDB_USER_JOBS_TABLE="user-jobs"
+
 echo "GLUE_JOB_NAME=${GLUE_JOB_NAME}" > .env
 echo "GLUE_DISCORD_JOB_NAME=${GLUE_DISCORD_JOB_NAME}" >> .env
 echo "GLUE_SUMMARIZE_JOB_NAME=${GLUE_SUMMARIZE_JOB_NAME}" >> .env
@@ -100,6 +107,9 @@ echo "GLUE_DATABASE=${GLUE_DATABASE}" >> .env
 echo "GLUE_TABLE=${GLUE_TABLE}" >> .env
 echo "GLUE_SUMMARY_TABLE=${GLUE_SUMMARY_TABLE}" >> .env
 echo "DISCORD_SECRET_NAME=${DISCORD_SECRET_NAME}" >> .env
+echo "DDB_WEBHOOK_SETTINGS_TABLE=${DDB_WEBHOOK_SETTINGS_TABLE}" >> .env
+echo "DDB_CATEGORY_SETTINGS_TABLE=${DDB_CATEGORY_SETTINGS_TABLE}" >> .env
+echo "DDB_USER_JOBS_TABLE=${DDB_USER_JOBS_TABLE}" >> .env
 ```
 
 执行脚本
@@ -170,3 +180,9 @@ See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more inform
 ## License
 
 This library is licensed under the MIT-0 License. See the LICENSE file.
+
+## Disclaimer
+=============================Disclaimer========================================
+The sample code or script or other assets are provided as Service Content (in the case that you are using Amazon Web Services China regions) or AWS Content (in the case that you are using Amazon Web Services regions outside Mainland China) (“Assets”) under the Customer Agreement or the relevant written agreement between you and the operator of the relevant Amazon Web Services region (whichever applies). You should not use the Assets in your production accounts, or on production or other critical data. You are responsible for testing, securing, and optimizing the Assets, as appropriate for production grade use based on your specific quality control practices and standards.  Deploying the Assets may incur charges for creating or using Amazon Web Services chargeable resources, such as running Amazon EC2 instances or using Amazon S3 storage.
+示例代码或脚本或其他资料（“资料”）作为您与相关亚马逊云科技区域运营商之间的客户协议或相关书面协议（以适用者为准）下的“服务内容”（如果您使用亚马逊云科技中国区域）或“AWS 内容”（如果您使用中国大陆以外的亚马逊云科技区域）而提供给您。您不应在您的生产账户中使用“资料”，也不应将“资料”用于您的生产或其他关键数据。您负责根据您的特定质量控制实践和标准对“资料”进行测试、采取安全措施和优化，以适合生产级用途。部署“资料”可能会因创建或使用亚马逊云科技收费资源（例如运行Amazon EC2 实例或使用 Amazon S3 存储）而产生费用。
+=============================End of disclaimer ===================================
